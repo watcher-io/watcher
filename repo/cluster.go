@@ -3,29 +3,35 @@ package repo
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/aka-achu/watcher/model"
 	"go.etcd.io/bbolt"
 	"os"
 )
 
+// GetClusterProfiles, iterated the ${CLUSTER_PROFILE_BUCKET} bucket and
+// fetches all the cluster profiles present in the bucket.
 func GetClusterProfiles() ([]*model.Cluster, error) {
 	var clusterProfiles []*model.Cluster
 	return clusterProfiles, Connection.View(func(tx *bbolt.Tx) error {
+
+		// Creating cursor object of the bucket for iteration
 		c := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Cursor()
+		// Iterating the cursor object
 		for clusterID, cluster := c.First(); clusterID != nil; clusterID, cluster = c.Next() {
+			// If a valid key value pair is found then decode profile data into model.Cluster object
 			var clusterInfo model.Cluster
-			fmt.Println("Came here")
-			fmt.Printf("%s:%s", clusterID, cluster)
 			if err := json.Unmarshal(cluster, &clusterInfo); err != nil {
 				return err
 			}
+			// Append the cluster profile info with the pre-declared array
 			clusterProfiles = append(clusterProfiles, &clusterInfo)
 		}
 		return nil
 	})
 }
 
+// CreateClusterProfile, creates a cluster profile inside ${CLUSTER_PROFILE_BUCKET} bucket, given
+// a validated model.Cluster object
 func CreateClusterProfile(cluster *model.Cluster) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
@@ -38,6 +44,8 @@ func CreateClusterProfile(cluster *model.Cluster) error {
 	}
 }
 
+// GetClusterInfoByID, return a model.Cluster object containing cluster details of having the requested
+// id as the ClusterID
 func GetClusterInfoByID(clusterID string) (*model.Cluster, error) {
 	var cluster model.Cluster
 	return &cluster,

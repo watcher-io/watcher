@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// GetUserDetails, retrieves the profile details of the admin.
 func GetUserDetails() (*model.User, error) {
 	var user model.User
 	return &user,
@@ -25,6 +26,7 @@ func GetUserDetails() (*model.User, error) {
 		)
 }
 
+// SaveUserDetails, updates admin profile details in the database
 func SaveUserDetails(user *model.User) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
