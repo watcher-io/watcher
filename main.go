@@ -15,6 +15,6 @@ func init() {
 	state.Validate()
 	repo.Initialize()
 }
-func main(){
+func main() {
 	cmd.Execute()
 }

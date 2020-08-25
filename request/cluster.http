@@ -1,0 +1,13 @@
+POST http://0.0.0.0:8080/api/cluster/create HTTP/1.1
+Content-Type: application/json
+Authorization: Auth eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE1OTg0NDk4MTIsInVzZXJfaWQiOiJhZG1pbiJ9.se8yyMUXmemOqs9XP9N1DKqdZNpeXxyoiE35RBfck6g
+
+{
+  "name" : "Cluster 1",
+  "endpoints" : ["https://0.0.0.0:2379"]
+}
+
+
+###
+POST http://0.0.0.0:8080/api/cluster/fetch HTTP/1.1
+Authorization: Auth eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE1OTg0NDk4MTIsInVzZXJfaWQiOiJhZG1pbiJ9.se8yyMUXmemOqs9XP9N1DKqdZNpeXxyoiE35RBfck6g

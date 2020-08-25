@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 )
+
 // Validate, validates the state of the application.
 func Validate() {
 	// Checking for the existence of the data directory
@@ -29,8 +30,8 @@ func Validate() {
 // InitBuckets, creates the required buckets if the buckets are not present
 // in the "watcher.db" file.
 func InitBuckets() error {
-	if db, err := bbolt.Open(filepath.Join("data", "watcher.db"),0666, &bbolt.Options{
-		Timeout:         1 * time.Second,
+	if db, err := bbolt.Open(filepath.Join("data", "watcher.db"), 0666, &bbolt.Options{
+		Timeout: 1 * time.Second,
 	}); err != nil {
 		return err
 	} else {

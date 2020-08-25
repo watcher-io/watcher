@@ -17,7 +17,7 @@ func GetUserDetails() (*model.User, error) {
 					return nil
 				} else {
 					return json.Unmarshal(
-						tx.Bucket([]byte(os.Getenv("USER_PROFILE_BUCKET"))).Get([]byte("admin")),
+						byteData,
 						&user,
 					)
 				}

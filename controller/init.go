@@ -17,5 +17,11 @@ func Initialize() *mux.Router {
 	authRouter.HandleFunc("/saveAdminProfile", authController.SaveAdminProfile)
 	authRouter.HandleFunc("/login", authController.Login)
 
+	var clusterController ClusterController
+	clusterRouter := router.PathPrefix("/api/cluster").Subrouter()
+	clusterRouter.Use(middleware.AuthLogging)
+	clusterRouter.HandleFunc("/fetch", clusterController.FetchClusterProfiles)
+	clusterRouter.HandleFunc("/create", clusterController.CreateClusterProfile)
+
 	return router
 }

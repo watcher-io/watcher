@@ -26,7 +26,7 @@ func CreateToken(user string) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims).SignedString([]byte(os.Getenv("ACCESS_SECRET")))
 }
 
-func VerifyToken(bearToken  string) error {
+func VerifyToken(bearToken string) error {
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) != 2 {
 		logging.Error.Printf(" [APP] Invalid auth token in the request header")
@@ -38,7 +38,7 @@ func VerifyToken(bearToken  string) error {
 		}
 		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	}); err != nil {
-		logging.Error.Printf(" [APP] Failed to parse the JWT token. %v",err)
+		logging.Error.Printf(" [APP] Failed to parse the JWT token. %v", err)
 		return err
 	} else {
 		if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {

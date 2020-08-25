@@ -6,7 +6,7 @@ type Cluster struct {
 	ID string `json:"id"`
 
 	// Name is a user-given name for the cluster
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 
 	// Endpoints is a list of URLs of nodes
 	Endpoints []string `json:"endpoints"`
@@ -16,6 +16,9 @@ type Cluster struct {
 
 	// Password is a password for authentication.
 	Password string `json:"password"`
+
+	// TLS indicates whether to use tls certificates for authentication
+	TLS bool `json:"tls"`
 
 	// ServerName ensures the cert matches the given host in case of discovery / virtual hosting
 	ServerName string `json:"server_name"`
@@ -28,4 +31,7 @@ type Cluster struct {
 
 	// TrustedCAFile is Certificate Authority file name
 	TrustedCAFile string `json:"trusted_ca_file"`
+
+	// CreationTime indicates the time when the cluster profile was created
+	CreationTime int64 `json:"creation_time"`
 }

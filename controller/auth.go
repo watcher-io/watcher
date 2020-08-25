@@ -11,30 +11,30 @@ import (
 	"net/http"
 )
 
-type AuthController struct {}
+type AuthController struct{}
 
-func (*AuthController) CheckAdminInitStatus( w http.ResponseWriter, r *http.Request) {
+func (*AuthController) CheckAdminInitStatus(w http.ResponseWriter, r *http.Request) {
 
 	requestTraceID := r.Context().Value("trace_id").(string)
 	user, err := repo.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
-		response.InternalServerError(w,"1002", err.Error())
+		response.InternalServerError(w, "1002", err.Error())
 		return
 	}
 	if !user.InitializationStatus {
 		logging.Info.Printf(" [APP] The admin profile does not exist in the application. TraceID-%s", requestTraceID)
-		response.Success(w,"1003","Admin profile isn't initialized", user)
+		response.Success(w, "1003", "Admin profile isn't initialized", user)
 		return
 	} else {
-		logging.Info.Printf(" [APP] The admin profile exists in the application. TraceID-%s",requestTraceID)
+		logging.Info.Printf(" [APP] The admin profile exists in the application. TraceID-%s", requestTraceID)
 		user.Password = ""
-		response.Success(w,"1004","Admin profile is initialized", user)
+		response.Success(w, "1004", "Admin profile is initialized", user)
 		return
 	}
 }
 
-func (*AuthController) SaveAdminProfile( w http.ResponseWriter, r *http.Request) {
+func (*AuthController) SaveAdminProfile(w http.ResponseWriter, r *http.Request) {
 
 	requestTraceID := r.Context().Value("trace_id").(string)
 	var saveAdminProfileRequest model.SaveAdminProfileRequest
@@ -53,7 +53,7 @@ func (*AuthController) SaveAdminProfile( w http.ResponseWriter, r *http.Request)
 	user, err := repo.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
-		response.InternalServerError(w,"1002", err.Error())
+		response.InternalServerError(w, "1002", err.Error())
 		return
 	}
 	if user.Password == "" {
@@ -61,21 +61,21 @@ func (*AuthController) SaveAdminProfile( w http.ResponseWriter, r *http.Request)
 		user.InitializationStatus = true
 		if err := repo.SaveUserDetails(user); err != nil {
 			logging.Error.Printf(" [DB] Failed to save admin details. Error-%v TraceID-%s", err, requestTraceID)
-			response.InternalServerError(w,"1005", err.Error())
+			response.InternalServerError(w, "1005", err.Error())
 		} else {
 			logging.Info.Printf(" [DB] Successfully saved admin details. TraceID-%s", requestTraceID)
-			response.Success(w,"1006","Successfully saved admin details", nil)
+			response.Success(w, "1006", "Successfully saved admin details", nil)
 		}
 		return
 	} else {
 		logging.Warn.Printf(" [APP] The admin profile already exists in the application. Attemp to re-create. TraceID-%s", requestTraceID)
-		response.Conflict(w,"1007","Attempt to re-initialize the admin profile")
+		response.Conflict(w, "1007", "Attempt to re-initialize the admin profile")
 		return
 	}
 
 }
 
-func (*AuthController) Login( w http.ResponseWriter, r *http.Request) {
+func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
 
 	requestTraceID := r.Context().Value("trace_id").(string)
 	var loginRequest model.LoginRequest
@@ -94,26 +94,26 @@ func (*AuthController) Login( w http.ResponseWriter, r *http.Request) {
 	user, err := repo.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
-		response.InternalServerError(w,"1002", err.Error())
+		response.InternalServerError(w, "1002", err.Error())
 		return
 	}
 	if user.Password == "" {
 		logging.Error.Printf(" [APP] Login attempt when the admin profile is not initialized. TraceID-%s", requestTraceID)
-		response.InternalServerError(w,"1008", "Please initialize admin profile first.")
+		response.InternalServerError(w, "1008", "Please initialize admin profile first.")
 		return
 	}
-	if user.Password == utility.Hash(loginRequest.Password){
+	if user.Password == utility.Hash(loginRequest.Password) {
 		if token, err := utility.CreateToken("admin"); err != nil {
 			logging.Error.Printf(" [APP] Valid user credential but failed to generate access token. Error-%v TraceID-%s", err, requestTraceID)
-			response.InternalServerError(w,"1009", err.Error())
+			response.InternalServerError(w, "1009", err.Error())
 		} else {
 			logging.Info.Printf(" [APP] Valid user credential. Successfully generated access token. TraceID-%s", requestTraceID)
-			response.Success(w,"1010","Successful login", model.LoginResponse{Token: token})
+			response.Success(w, "1010", "Successful login", model.LoginResponse{Token: token})
 		}
 		return
 	} else {
 		logging.Warn.Printf(" [APP] Invalid user credential. TraceID-%s", requestTraceID)
-		response.UnAuthorized(w,"1011","Invalid user credential")
+		response.UnAuthorized(w, "1011", "Invalid user credential")
 		return
 	}
 }
