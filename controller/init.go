@@ -13,6 +13,7 @@ func Initialize() *mux.Router {
 
 	router.HandleFunc("/api/auth/checkAdminStatus", authController.CheckAdminInitStatus)
 	router.HandleFunc("/api/auth/saveAdminProfile", authController.SaveAdminProfile)
+	router.HandleFunc("/api/auth/login", authController.Login)
 
 	return router
 }

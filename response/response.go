@@ -49,3 +49,9 @@ func Conflict(w http.ResponseWriter, code string, message string) {
 	w.WriteHeader(http.StatusConflict)
 	_ = json.NewEncoder(w).Encode(getResponseBody(code, message))
 }
+
+func UnAuthorized(w http.ResponseWriter, code string, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = json.NewEncoder(w).Encode(getResponseBody(code, message))
+}
