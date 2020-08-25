@@ -20,6 +20,8 @@ func Validate() {
 			logging.Info.Printf(" [APP] Successfully created the data directory.")
 		}
 	}
+
+	// Initializing the database buckets
 	if err := InitBuckets(); err != nil {
 		logging.Error.Fatalf(" [DB] Failed to initialize the buckets. %v", err)
 	} else {
@@ -36,9 +38,13 @@ func InitBuckets() error {
 		return err
 	} else {
 		defer db.Close()
+
+		// Creating a manual db transaction for creation of buckets
 		if tx, err := db.Begin(true); err != nil {
 			return err
 		} else {
+
+			// Creating the required buckets in the same transaction
 			if _, err := tx.CreateBucketIfNotExists([]byte(os.Getenv("USER_PROFILE_BUCKET"))); err != nil {
 				_ = tx.Rollback()
 				return err
@@ -51,6 +57,8 @@ func InitBuckets() error {
 				_ = tx.Rollback()
 				return err
 			}
+
+			// Committing the changes of the current transaction
 			if err := tx.Commit(); err != nil {
 				return err
 			}
