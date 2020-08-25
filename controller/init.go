@@ -18,14 +18,17 @@ func Initialize() *mux.Router {
 	// Declaring Controllers in order to access the handle functions
 	var authController AuthController
 	var clusterController ClusterController
+	var statusController StatusController
 
 	// Creating sub routers with different path prefix
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
 	clusterRouter := router.PathPrefix("/api/cluster").Subrouter()
+	statusRouter := router.PathPrefix("/api/status").Subrouter()
 
 	// Integrating the Auth and NoAuth middlewares
 	authRouter.Use(middleware.NoAuthLogging)
 	clusterRouter.Use(middleware.AuthLogging)
+	statusRouter.Use(middleware.NoAuthLogging)
 
 	// Registering the handle function for different request paths
 	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus)
@@ -34,6 +37,8 @@ func Initialize() *mux.Router {
 
 	clusterRouter.HandleFunc("/fetch", clusterController.FetchClusterProfiles)
 	clusterRouter.HandleFunc("/create", clusterController.CreateClusterProfile)
+
+	statusRouter.HandleFunc("/backup", statusController.TakeBackup)
 
 	return router
 }
