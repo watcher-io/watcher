@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/aka-achu/watcher/middleware"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -10,10 +11,11 @@ func Initialize() *mux.Router {
 	router.Use(cors.AllowAll().Handler)
 
 	var authController AuthController
-
-	router.HandleFunc("/api/auth/checkAdminStatus", authController.CheckAdminInitStatus)
-	router.HandleFunc("/api/auth/saveAdminProfile", authController.SaveAdminProfile)
-	router.HandleFunc("/api/auth/login", authController.Login)
+	authRouter := router.PathPrefix("/api/auth").Subrouter()
+	authRouter.Use(middleware.NoAuthLogging)
+	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus)
+	authRouter.HandleFunc("/saveAdminProfile", authController.SaveAdminProfile)
+	authRouter.HandleFunc("/login", authController.Login)
 
 	return router
 }
