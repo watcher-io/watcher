@@ -1,4 +1,4 @@
-package validation
+package state
 
 import (
 	"github.com/aka-achu/watcher/logging"
@@ -14,15 +14,15 @@ func Validate() {
 	// and initializes the buckets for "watcher.db".
 	if _, err := os.Stat("data"); os.IsNotExist(err) {
 		if err := os.Mkdir("data", 0755); err != nil {
-			logging.Error.Fatalf("Failed to create data directory. %v", err)
+			logging.Error.Fatalf("[APP] Failed to create data directory. %v", err)
 		} else {
-			logging.Info.Printf("Successfully created the data directory.")
+			logging.Info.Printf(" [APP] Successfully created the data directory.")
 		}
 	}
 	if err := InitBuckets(); err != nil {
-		logging.Error.Fatalf("Failed to initialize the buckets. %v", err)
+		logging.Error.Fatalf(" [DB] Failed to initialize the buckets. %v", err)
 	} else {
-		logging.Info.Printf("Successfully initialzied the buckets.")
+		logging.Info.Printf(" [DB] Successfully initialzied the buckets.")
 	}
 }
 
