@@ -10,10 +10,9 @@ import (
 
 // GetClusterProfiles, iterated the ${CLUSTER_PROFILE_BUCKET} bucket and
 // fetches all the cluster profiles present in the bucket.
-func GetClusterProfiles() ([]*model.Cluster, error) {
+func (db *Repo)GetClusterProfiles() ([]*model.Cluster, error) {
 	var clusterProfiles []*model.Cluster
-	return clusterProfiles, Connection.View(func(tx *bbolt.Tx) error {
-
+	return clusterProfiles, db.Conn.View(func(tx *bbolt.Tx) error {
 		// Creating cursor object of the bucket for iteration
 		c := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Cursor()
 		// Iterating the cursor object
@@ -32,11 +31,11 @@ func GetClusterProfiles() ([]*model.Cluster, error) {
 
 // CreateClusterProfile, creates a cluster profile inside ${CLUSTER_PROFILE_BUCKET} bucket, given
 // a validated model.Cluster object
-func CreateClusterProfile(cluster *model.Cluster) error {
+func (db *Repo)CreateClusterProfile(cluster *model.Cluster) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
 	} else {
-		return Connection.Update(
+		return db.Conn.Update(
 			func(tx *bbolt.Tx) error {
 				return tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Put([]byte(cluster.ID), byteData)
 			},
@@ -46,10 +45,10 @@ func CreateClusterProfile(cluster *model.Cluster) error {
 
 // GetClusterInfoByID, return a model.Cluster object containing cluster details of having the requested
 // id as the ClusterID
-func GetClusterInfoByID(clusterID string) (*model.Cluster, error) {
+func (db *Repo)GetClusterInfoByID(clusterID string) (*model.Cluster, error) {
 	var cluster model.Cluster
 	return &cluster,
-		Connection.View(
+		db.Conn.View(
 			func(tx *bbolt.Tx) error {
 				byteData := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Get([]byte(clusterID))
 				if len(byteData) == 0 {

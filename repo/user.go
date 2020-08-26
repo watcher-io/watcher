@@ -8,10 +8,10 @@ import (
 )
 
 // GetUserDetails, retrieves the profile details of the admin.
-func GetUserDetails() (*model.User, error) {
+func (db *Repo)GetUserDetails() (*model.User, error) {
 	var user model.User
 	return &user,
-		Connection.View(
+		db.Conn.View(
 			func(tx *bbolt.Tx) error {
 				byteData := tx.Bucket([]byte(os.Getenv("USER_PROFILE_BUCKET"))).Get([]byte("admin"))
 				if len(byteData) == 0 {
@@ -27,11 +27,11 @@ func GetUserDetails() (*model.User, error) {
 }
 
 // SaveUserDetails, updates admin profile details in the database
-func SaveUserDetails(user *model.User) error {
+func (db *Repo) SaveUserDetails(user *model.User) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
 	} else {
-		return Connection.Update(
+		return db.Conn.Update(
 			func(tx *bbolt.Tx) error {
 				return tx.Bucket([]byte(os.Getenv("USER_PROFILE_BUCKET"))).Put([]byte("admin"), byteData)
 			},
