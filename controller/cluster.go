@@ -24,7 +24,7 @@ func (*ClusterController) FetchClusterProfiles(w http.ResponseWriter, r *http.Re
 	requestTraceID := r.Context().Value("trace_id").(string)
 
 	// Fetching the cluster profiles
-	clusterProfiles, err := repo.GetClusterProfiles()
+	clusterProfiles, err := repo.DB.GetClusterProfiles()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch cluster info from the database. Error-%v TraceID-%s", err, requestTraceID)
 		response.InternalServerError(w, "2002", err.Error())
@@ -63,7 +63,7 @@ func (*ClusterController) CreateClusterProfile(w http.ResponseWriter, r *http.Re
 	clusterCreateRequest.CreationTime = time.Now().Unix()
 
 	// Creating the cluster profile with the requested data
-	err = repo.CreateClusterProfile(&clusterCreateRequest)
+	err = repo.DB.CreateClusterProfile(&clusterCreateRequest)
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to create the cluster profile. Error-%v TraceID-%s", err, requestTraceID)
 		response.InternalServerError(w,"2004", err.Error())

@@ -23,7 +23,7 @@ func (*AuthController) CheckAdminInitStatus(w http.ResponseWriter, r *http.Reque
 	requestTraceID := r.Context().Value("trace_id").(string)
 
 	// Fetching the admin details from the database
-	user, err := repo.GetUserDetails()
+	user, err := repo.DB.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
 		response.InternalServerError(w, "1002", err.Error())
@@ -68,7 +68,7 @@ func (*AuthController) SaveAdminProfile(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Fetching admin details from the database
-	user, err := repo.GetUserDetails()
+	user, err := repo.DB.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
 		response.InternalServerError(w, "1002", err.Error())
@@ -82,7 +82,7 @@ func (*AuthController) SaveAdminProfile(w http.ResponseWriter, r *http.Request) 
 		// Changing the initialization status to true
 		user.InitializationStatus = true
 		// Saving the admin profile details
-		if err := repo.SaveUserDetails(user); err != nil {
+		if err := repo.DB.SaveUserDetails(user); err != nil {
 			logging.Error.Printf(" [DB] Failed to save admin details. Error-%v TraceID-%s", err, requestTraceID)
 			response.InternalServerError(w, "1005", err.Error())
 		} else {
@@ -123,7 +123,7 @@ func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetching the user details from the database
-	user, err := repo.GetUserDetails()
+	user, err := repo.DB.GetUserDetails()
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to fetch the admin details. Error-%v TraceID-%s", err, requestTraceID)
 		response.InternalServerError(w, "1002", err.Error())
