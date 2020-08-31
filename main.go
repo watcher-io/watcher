@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aka-achu/watcher/cmd"
+	"github.com/aka-achu/watcher/etcd"
 	"github.com/aka-achu/watcher/logging"
 	"github.com/aka-achu/watcher/repo"
 	"github.com/aka-achu/watcher/state"
@@ -14,6 +15,7 @@ func init() {
 	}
 	state.Validate()
 	repo.Initialize()
+	etcd.Initialize()
 }
 func main() {
 	cmd.Execute()

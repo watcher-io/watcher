@@ -15,7 +15,7 @@ type Cluster struct {
 
 type ConnectionStore struct {
 	m map[string]*Cluster
-	l *sync.Mutex
+	l sync.Mutex
 }
 
 func New(maxTTL int) (cs *ConnectionStore) {
