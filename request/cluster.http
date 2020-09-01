@@ -4,9 +4,7 @@ Authorization: Auth eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnV
 
 {
   "name" : "do",
-  "endpoints" : ["http://159.65.149.70:2379"],
-  "username" : "root",
-  "password" : "16121996"
+  "endpoints" : ["http://159.65.149.70:1379","http://159.65.149.70:2379","http://159.65.149.70:3379"]
 }
 
 

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func connect(cfg *model.Cluster) (*clientv3.Client, error) {
+func connect(cfg *model.ClusterProfile) (*clientv3.Client, error) {
 	fmt.Println(cfg)
 	if !cfg.TLS {
 		return clientv3.New(clientv3.Config{

@@ -10,15 +10,15 @@ import (
 
 // GetClusterProfiles, iterated the ${CLUSTER_PROFILE_BUCKET} bucket and
 // fetches all the cluster profiles present in the bucket.
-func (db *Repo)GetClusterProfiles() ([]*model.Cluster, error) {
-	var clusterProfiles []*model.Cluster
+func (db *Repo)GetClusterProfiles() ([]*model.ClusterProfile, error) {
+	var clusterProfiles []*model.ClusterProfile
 	return clusterProfiles, db.Conn.View(func(tx *bbolt.Tx) error {
 		// Creating cursor object of the bucket for iteration
 		c := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Cursor()
 		// Iterating the cursor object
 		for clusterID, cluster := c.First(); clusterID != nil; clusterID, cluster = c.Next() {
-			// If a valid key value pair is found then decode profile data into model.Cluster object
-			var clusterInfo model.Cluster
+			// If a valid key value pair is found then decode profile data into model.ClusterProfile object
+			var clusterInfo model.ClusterProfile
 			if err := json.Unmarshal(cluster, &clusterInfo); err != nil {
 				return err
 			}
@@ -30,8 +30,8 @@ func (db *Repo)GetClusterProfiles() ([]*model.Cluster, error) {
 }
 
 // CreateClusterProfile, creates a cluster profile inside ${CLUSTER_PROFILE_BUCKET} bucket, given
-// a validated model.Cluster object
-func (db *Repo)CreateClusterProfile(cluster *model.Cluster) error {
+// a validated model.ClusterProfile object
+func (db *Repo)CreateClusterProfile(cluster *model.ClusterProfile) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
 	} else {
@@ -43,10 +43,10 @@ func (db *Repo)CreateClusterProfile(cluster *model.Cluster) error {
 	}
 }
 
-// GetClusterInfoByID, return a model.Cluster object containing cluster details of having the requested
+// GetClusterInfoByID, return a model.ClusterProfile object containing cluster details of having the requested
 // id as the ClusterID
-func (db *Repo)GetClusterInfoByID(clusterID string) (*model.Cluster, error) {
-	var cluster model.Cluster
+func (db *Repo)GetClusterInfoByID(clusterID string) (*model.ClusterProfile, error) {
+	var cluster model.ClusterProfile
 	return &cluster,
 		db.Conn.View(
 			func(tx *bbolt.Tx) error {

@@ -41,8 +41,8 @@ func (*ClusterController) CreateClusterProfile(w http.ResponseWriter, r *http.Re
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
-	// Decoding the request body to the model.Cluster object
-	var clusterCreateRequest model.Cluster
+	// Decoding the request body to the model.ClusterProfile object
+	var clusterCreateRequest model.ClusterProfile
 	err := json.NewDecoder(r.Body).Decode(&clusterCreateRequest)
 	if err != nil {
 		logging.Error.Printf(" [APP] Failed to decode the request body. Error-%v TraceID-%s", err, requestTraceID)
