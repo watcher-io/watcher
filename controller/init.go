@@ -34,7 +34,7 @@ func Initialize() *mux.Router {
 	clusterProfileRouter.Use(middleware.AuthLogging)
 	statusWithAuthRouter.Use(middleware.AuthLogging)
 	statusWithOutAuthRouter.Use(middleware.AuthLogging)
-	dashboardRouter.Use(middleware.NoAuthLogging)
+	dashboardRouter.Use(middleware.AuthLogging)
 
 	// Registering the handle function for different request paths
 	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus).Methods("GET")
