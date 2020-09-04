@@ -22,27 +22,27 @@ func Initialize() *mux.Router {
 
 	// Creating sub routers with different path prefix
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
-	clusterRouter := router.PathPrefix("/api/cluster").Subrouter()
+	clusterProfileRouter := router.PathPrefix("/api/clusterProfile").Subrouter()
 	statusWithAuthRouter := router.PathPrefix("/api/status").Subrouter()
 	statusWithOutAuthRouter := router.PathPrefix("/api/status").Subrouter()
 
 
 	// Integrating the Auth and NoAuth middlewares
 	authRouter.Use(middleware.NoAuthLogging)
-	clusterRouter.Use(middleware.AuthLogging)
+	clusterProfileRouter.Use(middleware.AuthLogging)
 	statusWithAuthRouter.Use(middleware.AuthLogging)
 	statusWithOutAuthRouter.Use(middleware.AuthLogging)
 
 	// Registering the handle function for different request paths
-	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus)
-	authRouter.HandleFunc("/saveAdminProfile", authController.SaveAdminProfile)
+	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus).Methods("GET")
+	authRouter.HandleFunc("/saveAdminProfile", authController.SaveAdminProfile).Methods("POST")
 	authRouter.HandleFunc("/login", authController.Login)
 
-	clusterRouter.HandleFunc("/fetch", clusterController.FetchClusterProfiles)
-	clusterRouter.HandleFunc("/create", clusterController.CreateClusterProfile)
+	clusterProfileRouter.HandleFunc("/fetch", clusterController.FetchClusterProfiles).Methods("GET")
+	clusterProfileRouter.HandleFunc("/create", clusterController.CreateClusterProfile).Methods("POST")
 
-	statusWithAuthRouter.HandleFunc("/backup", statusController.TakeBackup)
-	statusWithOutAuthRouter.HandleFunc("/useSnapshot", statusController.ReInitDBWithSnapshot)
+	statusWithAuthRouter.HandleFunc("/backup", statusController.TakeBackup).Methods("GET")
+	statusWithOutAuthRouter.HandleFunc("/useSnapshot", statusController.ReInitDBWithSnapshot).Methods("POST")
 
 	return router
 }
