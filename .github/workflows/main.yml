@@ -1,0 +1,19 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - run: docker build . --file Dockerfile --tag  docker.pkg.github.com/aka-achu/watcher/server:latest
+    - run: docker login -u aka-achu -p ${{ secrets.PKG_ACCESS }} docker.pkg.github.com
+    - run: docker push docker.pkg.github.com/aka-achu/watcher/server:latest
