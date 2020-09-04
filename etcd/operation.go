@@ -6,7 +6,7 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
-func FetchMemberList(c *clientv3.Client) (model.Cluster, error){
+func FetchMember(c *clientv3.Client) (model.Cluster, error){
 	var clusterState model.Cluster
 	memberListResponse, err := c.MemberList(context.Background())
 	if err != nil {
