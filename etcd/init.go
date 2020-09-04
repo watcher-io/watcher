@@ -5,5 +5,5 @@ var ClusterConnection *ConnectionStore
 
 // Initializing the cluster connection store with 15 minutes of ttl period
 func Initialize(){
-	ClusterConnection = New(5)
+	ClusterConnection = New(15)
 }

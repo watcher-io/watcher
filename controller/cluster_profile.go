@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-// ClusterController is an empty struct. All cluster related handle functions will be implemented
+// ClusterProfileController is an empty struct. All cluster profile related handle functions will be implemented
 // on this struct. This is used as a logical partition for all the handle functions
 // in controller package.
-type ClusterController struct{}
+type ClusterProfileController struct{}
 
 // FetchClusterProfiles handle function returns all the cluster profiles present in
 // the application.
-func (*ClusterController) FetchClusterProfiles(w http.ResponseWriter, r *http.Request) {
+func (*ClusterProfileController) FetchClusterProfiles(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
@@ -37,7 +37,7 @@ func (*ClusterController) FetchClusterProfiles(w http.ResponseWriter, r *http.Re
 // CreateClusterProfile handle function creates a cluster profile give cluster details.
 // After validating the required fields in the request body, ID and CreatedTime fields
 // are populated and the cluster profile is created
-func (*ClusterController) CreateClusterProfile(w http.ResponseWriter, r *http.Request) {
+func (*ClusterProfileController) CreateClusterProfile(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
