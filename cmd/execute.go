@@ -5,6 +5,7 @@ import (
 	"github.com/aka-achu/watcher/logging"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 // Execute starts the web server on the specified server address
@@ -14,10 +15,11 @@ func Execute() {
 	router := controller.Initialize()
 
 	if os.Getenv("BUILD") == "Prod" {
+		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
 		logging.Error.Fatal(http.ListenAndServeTLS(
 			os.Getenv("SERVER_ADDRESS"),
-			os.Getenv("TLS_CERTIFICATE_FILE"),
-			os.Getenv("TLS_KEY_FILE"),
+			filepath.Join("cert",os.Getenv("TLS_CERTIFICATE_FILE")),
+			filepath.Join("cert",os.Getenv("TLS_KEY_FILE")),
 			router,
 		))
 	} else {
