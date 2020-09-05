@@ -6,15 +6,15 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
-func FetchMember(c *clientv3.Client) (model.Cluster, error){
+func FetchMember(ctx context.Context, c *clientv3.Client) (model.Cluster, error){
 	var clusterState model.Cluster
-	memberListResponse, err := c.MemberList(context.Background())
+	memberListResponse, err := c.MemberList(ctx)
 	if err != nil {
 		return clusterState, err
 	}
 	clusterState.ID = memberListResponse.Header.ClusterId
 	for _, member := range memberListResponse.Members {
-		statusResponse, err := c.Status(context.Background(), member.ClientURLs[0])
+		statusResponse, err := c.Status(ctx, member.ClientURLs[0])
 		if err != nil {
 			return clusterState, err
 		}
@@ -36,4 +36,29 @@ func FetchMember(c *clientv3.Client) (model.Cluster, error){
 		})
 	}
 	return clusterState, err
+}
+
+func SaveKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVRequest) (*model.PutKVResponse, error){
+
+	kv := c.KV
+	var (
+		putResponse *clientv3.PutResponse
+		err error
+	)
+	if putKVRequest.KeyPrefix {
+		putResponse, err = kv.Put(ctx, putKVRequest.Key, putKVRequest.Value, clientv3.WithPrefix())
+	} else {
+		putResponse, err = kv.Put(ctx, putKVRequest.Key, putKVRequest.Value)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.PutKVResponse{
+		Revision: putResponse.Header.GetRevision(),
+		MemberID: putResponse.Header.GetMemberId(),
+		RaftTerm: putResponse.Header.GetRaftTerm(),
+	}, nil
+
 }

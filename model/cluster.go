@@ -1,5 +1,11 @@
 package model
 
+type Cluster struct {
+	Members []ClusterMember `json:"members"`
+	Leader  uint64          `json:"leader"`
+	ID      uint64          `json:"id"`
+}
+
 type ClusterMember struct {
 	ID         uint64       `json:"id"`
 	Name       string       `json:"name"`
@@ -16,10 +22,4 @@ type MemberStatus struct {
 	RaftIndex        uint64 `json:"raft_index"`
 	RaftTerm         uint64 `json:"raft_term"`
 	RaftAppliedIndex uint64 `json:"raft_applied_index"`
-}
-
-type Cluster struct {
-	Members []ClusterMember `json:"members"`
-	Leader  uint64          `json:"leader"`
-	ID      uint64          `json:"id"`
 }

@@ -9,3 +9,10 @@ type SaveAdminProfileRequest struct {
 type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
+
+// PutKVRequest is a object containing fields required to store key-value in etcd
+type PutKVRequest struct {
+	KeyPrefix bool   `json:"key_prefix"`
+	Key       string `json:"key"    validate:"required"`
+	Value     string `json:"value"  validate:"required"`
+}

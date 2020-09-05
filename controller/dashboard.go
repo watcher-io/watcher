@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"github.com/aka-achu/watcher/etcd"
 	"github.com/aka-achu/watcher/logging"
 	"github.com/aka-achu/watcher/response"
@@ -13,7 +14,8 @@ import (
 // in controller package.
 type DashboardController struct{}
 
-func (DashboardController) fetch(w http.ResponseWriter, r *http.Request) {
+// Fetch handle function returns the state of the cluster and members for the dashboard
+func (DashboardController) Fetch(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
@@ -29,7 +31,7 @@ func (DashboardController) fetch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetching the state of the cluster and members
-	cluster, err := etcd.FetchMember(conn)
+	cluster, err := etcd.FetchMember(context.Background(),conn)
 	if err != nil {
 		logging.Error.Printf(" [APP] Failed to fetch cluster info. Error-%v TraceID-%s ClusterProfileID-%s", err, requestTraceID, clusterProfileID)
 		response.InternalServerError(w, "4001", err.Error())
