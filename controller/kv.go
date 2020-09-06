@@ -52,7 +52,7 @@ func (*KVController) Put(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Storing the requested key-value pair in the cluster
-	putResponse, err := etcd.SaveKV(context.Background(), conn, &putKVRequest)
+	putResponse, err := etcd.PutKV(context.Background(), conn, &putKVRequest)
 	if err != nil {
 		logging.Error.Printf(" [APP] Failed to put the key-value pair in the cluster. Error-%v TraceID-%s ClusterProfileID-%s", err, requestTraceID, clusterProfileID)
 		response.InternalServerError(w, "5003", err.Error())

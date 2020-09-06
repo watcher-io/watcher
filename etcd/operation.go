@@ -38,19 +38,9 @@ func FetchMember(ctx context.Context, c *clientv3.Client) (model.Cluster, error)
 	return clusterState, err
 }
 
-func SaveKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVRequest) (*model.PutKVResponse, error){
+func PutKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVRequest) (*model.PutKVResponse, error){
 
-	kv := c.KV
-	var (
-		putResponse *clientv3.PutResponse
-		err error
-	)
-	if putKVRequest.KeyPrefix {
-		putResponse, err = kv.Put(ctx, putKVRequest.Key, putKVRequest.Value, clientv3.WithPrefix())
-	} else {
-		putResponse, err = kv.Put(ctx, putKVRequest.Key, putKVRequest.Value)
-	}
-
+	putResponse, err := c.Put(ctx, putKVRequest.Key, putKVRequest.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -60,5 +50,4 @@ func SaveKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVRe
 		MemberID: putResponse.Header.GetMemberId(),
 		RaftTerm: putResponse.Header.GetRaftTerm(),
 	}, nil
-
 }
