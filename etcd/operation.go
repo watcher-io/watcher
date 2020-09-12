@@ -30,7 +30,7 @@ func FetchMember(ctx context.Context, c *clientv3.Client) (model.Cluster, error)
 				DbSize:           statusResponse.DbSize,
 				DbSizeInUse:      statusResponse.DbSizeInUse,
 				RaftIndex:        statusResponse.RaftIndex,
-				RaftTerm:         statusResponse.RaftTer
+				RaftTerm:         statusResponse.RaftTerm,
 				RaftAppliedIndex: statusResponse.RaftAppliedIndex,
 			},
 		})
