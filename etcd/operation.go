@@ -30,7 +30,7 @@ func FetchMember(ctx context.Context, c *clientv3.Client) (model.Cluster, error)
 				DbSize:           statusResponse.DbSize,
 				DbSizeInUse:      statusResponse.DbSizeInUse,
 				RaftIndex:        statusResponse.RaftIndex,
-				RaftTerm:         statusResponse.RaftTerm,
+				RaftTerm:         statusResponse.RaftTer
 				RaftAppliedIndex: statusResponse.RaftAppliedIndex,
 			},
 		})
@@ -51,3 +51,22 @@ func PutKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVReq
 		RaftTerm: putResponse.Header.GetRaftTerm(),
 	}, nil
 }
+
+//func GetKVWithPrefix(ctx context.Context, c *clientv3.Client, getKVRequest *model.GetKVRequest) error {
+//	var (
+//		getResponse *clientv3.GetResponse
+//		err error
+//	)
+//	if getKVRequest.Prefix {
+//		// Iterate the keyspace for all the key having prefix
+//
+//	} else {
+//		if getKVRequest.Revision == 0 {
+//
+//		} else {
+//			getResponse, err = c.Get(ctx, getKVRequest.Key)
+//		}
+//	}
+//
+//	return nil
+//}

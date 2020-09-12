@@ -33,11 +33,11 @@ func Initialize() *mux.Router {
 
 	// Integrating the Auth and NoAuth middlewares
 	authRouter.Use(middleware.NoAuthLogging)
-	clusterProfileRouter.Use(middleware.AuthLogging)
-	statusWithAuthRouter.Use(middleware.AuthLogging)
-	statusWithOutAuthRouter.Use(middleware.AuthLogging)
-	dashboardRouter.Use(middleware.AuthLogging)
-	kvRouter.Use(middleware.AuthLogging)
+	clusterProfileRouter.Use(middleware.NoAuthLogging)
+	statusWithAuthRouter.Use(middleware.NoAuthLogging)
+	statusWithOutAuthRouter.Use(middleware.NoAuthLogging)
+	dashboardRouter.Use(middleware.NoAuthLogging)
+	kvRouter.Use(middleware.NoAuthLogging)
 
 	// Registering the handle function for different request paths
 	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus).Methods("GET")
