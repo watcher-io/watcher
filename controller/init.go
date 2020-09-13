@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/aka-achu/watcher/middleware"
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 )
 
 // Initialize, initialized a router, created sub routers, integrates middlewares,
@@ -12,8 +11,6 @@ func Initialize() *mux.Router {
 
 	// Creating a new router
 	router := mux.NewRouter()
-	// Adding a middleware for handling cors
-	router.Use(cors.AllowAll().Handler)
 
 	// Declaring Controllers in order to access the handle functions
 	var authController AuthController
@@ -33,11 +30,11 @@ func Initialize() *mux.Router {
 
 	// Integrating the Auth and NoAuth middlewares
 	authRouter.Use(middleware.NoAuthLogging)
-	clusterProfileRouter.Use(middleware.NoAuthLogging)
-	statusWithAuthRouter.Use(middleware.NoAuthLogging)
+	clusterProfileRouter.Use(middleware.AuthLogging)
+	statusWithAuthRouter.Use(middleware.AuthLogging)
 	statusWithOutAuthRouter.Use(middleware.NoAuthLogging)
-	dashboardRouter.Use(middleware.NoAuthLogging)
-	kvRouter.Use(middleware.NoAuthLogging)
+	dashboardRouter.Use(middleware.AuthLogging)
+	kvRouter.Use(middleware.AuthLogging)
 
 	// Registering the handle function for different request paths
 	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus).Methods("GET")

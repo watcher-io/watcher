@@ -8,7 +8,9 @@ type LoginResponse struct {
 
 // PutKVResponse is used to send the PUT key-value response
 type PutKVResponse struct {
-	Revision int64  `json:"revision"`
-	MemberID uint64 `json:"member_id"`
-	RaftTerm uint64 `json:"raft_term"`
+	Revision             int64  `json:"revision"`
+	MemberID             uint64 `json:"member_id"`
+	RaftTerm             uint64 `json:"raft_term"`
+	PreviousRevision     int64  `json:"previous_revision"`
+	PreviousRevisionVale string `json:"previous_revision_vale"`
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/aka-achu/watcher/controller"
 	"github.com/aka-achu/watcher/logging"
+	"github.com/rs/cors"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +14,8 @@ import (
 func Execute() {
 	// Initializing the controller, registering the endpoints
 	router := controller.Initialize()
+	// Adding a middleware for handling cors
+	router.Use(cors.AllowAll().Handler)
 
 	if os.Getenv("BUILD") == "Prod" {
 		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
