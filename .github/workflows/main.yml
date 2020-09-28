@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - run: docker build . --file Dockerfile --tag  docker.pkg.github.com/aka-achu/watcher/server:latest
-    - run: docker login -u aka-achu -p ${{ secrets.PKG_ACCESS }} docker.pkg.github.com
-    - run: docker push docker.pkg.github.com/aka-achu/watcher/server:latest
+      - uses: actions/checkout@v2
+      - run: docker build . --file Dockerfile --tag  docker.pkg.github.com/aka-achu/watcher/server:latest
+        env:
+          CORS_ORIGIN: ${{secrets.CORS_ORIGIN}}
+      - run: docker login -u aka-achu -p ${{ secrets.PKG_ACCESS }} docker.pkg.github.com
+      - run: docker push docker.pkg.github.com/aka-achu/watcher/server:latest
