@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto/tls"
 	"github.com/aka-achu/watcher/controller"
 	"github.com/aka-achu/watcher/logging"
@@ -8,6 +9,7 @@ import (
 	"github.com/rs/cors"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 )
@@ -34,20 +36,40 @@ func Execute() {
 	}
 	server := getServer(os.Getenv("BUILD") == "Prod", router)
 
+	done := make(chan bool)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	go func() {
+		<-quit
+		logging.Info.Printf(" [APP] Server is shutting down...")
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		server.SetKeepAlivesEnabled(false)
+		if err := server.Shutdown(ctx); err != nil {
+			logging.Error.Fatalf(" [ERROR] Could not gracefully shutdown the server: %v\n", err)
+		}
+		close(done)
+	}()
+
 	if os.Getenv("BUILD") == "Prod" {
 		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
-		logging.Error.Fatal(
-			server.ListenAndServeTLS(
+			if err := server.ListenAndServeTLS(
 				filepath.Join("cert", os.Getenv("TLS_CERTIFICATE_FILE")),
 				filepath.Join("cert", os.Getenv("TLS_KEY_FILE")),
-			),
-		)
+			); err != nil && err != http.ErrServerClosed {
+				logging.Error.Fatal(err)
+			}
 	} else {
 		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
-		logging.Error.Fatal(
-			server.ListenAndServe(),
-		)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logging.Error.Fatal(err)
+		}
 	}
+
+	<-done
+	logging.Info.Printf(" [APP] Server has stopped gracefully")
 }
 
 func getServer(secure bool, router *mux.Router) *http.Server {
