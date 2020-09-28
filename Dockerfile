@@ -3,6 +3,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+ENV CORS_ORIGIN ""
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o main ./main.go
 
 FROM ubuntu:latest
