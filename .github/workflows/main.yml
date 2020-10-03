@@ -33,8 +33,8 @@ jobs:
         uses: docker/login-action@v1
         with: 
           registry: docker.pkg.github.com
-          username: aka-achu
-          password: ${{ secrets.PKG_ACCESS }}
+          username: akaachu
+          password: ${{ secrets.HUB_ACCESS }}
       -
          name: Build and Push docker image
          id: docker_build
@@ -45,7 +45,7 @@ jobs:
            builder: ${{ steps.buildx.outputs.name }}
            platforms: linux/amd64
            push: true
-           tags: docker.pkg.github.com/aka-achu/watcher/server:latest
+           tags: runq/watcher:backend
            cache-from: type=local,src=/tmp/.buildx-cache
            cache-to: type=local,dest=/tmp/.buildx-cache
       -
