@@ -10,7 +10,7 @@ import (
 
 // GetClusterProfiles, iterated the ${CLUSTER_PROFILE_BUCKET} bucket and
 // fetches all the cluster profiles present in the bucket.
-func (db *Repo)GetClusterProfiles() ([]*model.ClusterProfile, error) {
+func (db *Database)GetClusterProfiles() ([]*model.ClusterProfile, error) {
 	var clusterProfiles []*model.ClusterProfile
 	return clusterProfiles, db.Conn.View(func(tx *bbolt.Tx) error {
 		// Creating cursor object of the bucket for iteration
@@ -30,8 +30,8 @@ func (db *Repo)GetClusterProfiles() ([]*model.ClusterProfile, error) {
 }
 
 // CreateClusterProfile, creates a cluster profile inside ${CLUSTER_PROFILE_BUCKET} bucket, given
-// a validated model.ClusterProfile object
-func (db *Repo)CreateClusterProfile(cluster *model.ClusterProfile) error {
+// a validated *model.ClusterProfile object
+func (db *Database)CreateClusterProfile(cluster *model.ClusterProfile) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
 	} else {
@@ -45,14 +45,14 @@ func (db *Repo)CreateClusterProfile(cluster *model.ClusterProfile) error {
 
 // GetClusterInfoByID, return a model.ClusterProfile object containing cluster details of having the requested
 // id as the ClusterID
-func (db *Repo)GetClusterInfoByID(clusterID string) (*model.ClusterProfile, error) {
+func (db *Database)GetClusterInfoByID(clusterID string) (*model.ClusterProfile, error) {
 	var cluster model.ClusterProfile
 	return &cluster,
 		db.Conn.View(
 			func(tx *bbolt.Tx) error {
 				byteData := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Get([]byte(clusterID))
 				if len(byteData) == 0 {
-					return errors.New("requested cluster does not exist in the database")
+					return errors.New("requested cluster does not exist in the Database")
 				} else {
 					return json.Unmarshal(
 						byteData,

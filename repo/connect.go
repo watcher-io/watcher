@@ -7,23 +7,27 @@ import (
 	"time"
 )
 
-type Repo struct {
+type Database struct {
 	Conn *bbolt.DB
 }
 
-// Declaring a global db Connection variable
-var DB Repo
+// NewRepo, initialized a db object containing a Database connection
+func NewDatabase() *Database {
+	return &Database{Conn: getConnection()}
+}
 
-// repo.Initialize, initialized the database connection
-func Initialize() {
-	if db, err := bbolt.Open(filepath.Join("data", "watcher.db"), 0666, &bbolt.Options{
-		Timeout: 1 * time.Second,
-	}); err != nil {
+// getConnection, establishes a Database connection
+func getConnection() *bbolt.DB {
+	if db, err := bbolt.Open(
+		filepath.Join("data", "watcher.db"),
+		0666,
+		&bbolt.Options{
+			Timeout: 1 * time.Second,
+		}); err != nil {
 		logging.Error.Fatalf(" [DB] Failed to connect to the watcher.db. Error-%v", err)
+		return nil
 	} else {
 		logging.Info.Printf(" [DB] Successfully established connection with the db")
-		DB = Repo{
-			Conn: db,
-		}
+		return db
 	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 // GetUserDetails, retrieves the profile details of the admin.
-func (db *Repo)GetUserDetails() (*model.User, error) {
+func (db *Database)GetUserDetails() (*model.User, error) {
 	var user model.User
 	return &user,
 		db.Conn.View(
@@ -26,8 +26,8 @@ func (db *Repo)GetUserDetails() (*model.User, error) {
 		)
 }
 
-// SaveUserDetails, updates admin profile details in the database
-func (db *Repo) SaveUserDetails(user *model.User) error {
+// SaveUserDetails, updates admin profile details in the Database
+func (db *Database) SaveUserDetails(user *model.User) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
 	} else {

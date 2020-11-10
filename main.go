@@ -4,7 +4,6 @@ import (
 	"github.com/aka-achu/watcher/cmd"
 	"github.com/aka-achu/watcher/etcd"
 	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/repo"
 	"github.com/aka-achu/watcher/state"
 	"github.com/subosito/gotenv"
 )
@@ -14,7 +13,6 @@ func init() {
 		logging.Error.Fatalf("Failed to load the env file. %v", err)
 	}
 	state.Validate()
-	repo.Initialize()
 	etcd.Initialize()
 }
 func main() {

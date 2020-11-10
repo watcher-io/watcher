@@ -35,14 +35,14 @@ func New(maxTTL int) (cs *ConnectionStore) {
 	return
 }
 
-func (cs *ConnectionStore) Get(clusterProfileID string) (*clientv3.Client, error) {
+func (cs *ConnectionStore) Get(db *repo.Database, clusterProfileID string) (*clientv3.Client, error) {
 	cs.l.Lock()
 	defer cs.l.Unlock()
 	if cluster, ok := cs.m[clusterProfileID]; ok {
 		cluster.lastAccess = time.Now().Unix()
 		return cluster.Connection, nil
 	} else {
-		clusterInfo, err := repo.DB.GetClusterInfoByID(clusterProfileID)
+		clusterInfo, err := db.GetClusterInfoByID(clusterProfileID)
 		if err != nil {
 			logging.Error.Printf(" [APP] Failed to fetch the cluster details for connection. Error-%v ClusterID-%s", err, clusterProfileID)
 			return nil, err
