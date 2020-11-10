@@ -11,13 +11,17 @@ import (
 	"net/http"
 )
 
-// AuthController is an empty struct. All authentication related handle functions will be implemented
-// on this struct. This is used as a logical partition for all the handle functions
-// in controller package.
-type AuthController struct{}
+// authController is an empty struct
+// for all the auth handle function to be implemented on
+type authController struct{}
 
-// CheckAdminInitStatus returns the status of admin profile initialization.
-func (*AuthController) CheckAdminInitStatus(w http.ResponseWriter, r *http.Request) {
+// NewAuthController return an initialized authController object
+func NewAuthController() *authController {
+	return &authController{}
+}
+
+// checkAdminInitStatus returns the status of admin profile initialization.
+func (*authController) checkAdminInitStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
@@ -42,10 +46,10 @@ func (*AuthController) CheckAdminInitStatus(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-// SaveAdminProfile will be used to save admin profile details (only password in the current release)
+// saveAdminProfile will be used to save admin profile details (only password in the current release)
 // It will check the initialization status of admin profile, the admin password will be save only if
 // the admin profile is not initialized before.
-func (*AuthController) SaveAdminProfile(w http.ResponseWriter, r *http.Request) {
+func (*authController) saveAdminProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
@@ -96,11 +100,11 @@ func (*AuthController) SaveAdminProfile(w http.ResponseWriter, r *http.Request) 
 
 }
 
-// Login handle function will be used to log into the application.
+// login handle function will be used to log into the application.
 // It validates the request body for existence of the password, if the hashed password matched
 // the password store in the database, a JWT token will be created and sent to the user which will
 // be used as an access_token for the application
-func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
+func (*authController) login(w http.ResponseWriter, r *http.Request) {
 
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
@@ -133,7 +137,7 @@ func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	// If the password field of the user data present in the database is empty then
 	// the admin profile has not been initialized
 	if user.Password == "" {
-		logging.Error.Printf(" [APP] Login attempt when the admin profile is not initialized. TraceID-%s", requestTraceID)
+		logging.Error.Printf(" [APP] login attempt when the admin profile is not initialized. TraceID-%s", requestTraceID)
 		response.InternalServerError(w, "1008", "Please initialize admin profile first.")
 		return
 	}

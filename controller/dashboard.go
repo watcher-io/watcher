@@ -9,13 +9,17 @@ import (
 	"net/http"
 )
 
-// DashboardController is an empty struct. All dashboard related handle functions will be implemented
-// on this struct. This is used as a logical partition for all the handle functions
-// in controller package.
-type DashboardController struct{}
+// DashboardController is an empty struct
+// for all the dashboard handle function to be implemented on
 
-// Fetch handle function returns the state of the cluster and members for the dashboard
-func (DashboardController) Fetch(w http.ResponseWriter, r *http.Request) {
+type dashboardController struct{}
+
+func NewDashboardController() *dashboardController {
+	return &dashboardController{}
+}
+
+// view handle function returns the state of the cluster and members for the dashboard
+func (*dashboardController) view(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 

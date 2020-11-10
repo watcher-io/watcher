@@ -12,14 +12,18 @@ import (
 	"time"
 )
 
-// ClusterProfileController is an empty struct. All cluster profile related handle functions will be implemented
-// on this struct. This is used as a logical partition for all the handle functions
-// in controller package.
-type ClusterProfileController struct{}
+// clusterController is an empty struct
+// for all the cluster profile handle function to be implemented on
+type clusterController struct{}
 
-// FetchClusterProfiles handle function returns all the cluster profiles present in
+// NewClusterController return a initialized clusterProfileController object
+func NewClusterController() *clusterController {
+	return &clusterController{}
+}
+
+// fetchProfiles handle function returns all the cluster profiles present in
 // the application.
-func (*ClusterProfileController) FetchClusterProfiles(w http.ResponseWriter, r *http.Request) {
+func (*clusterController) fetchProfiles(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
@@ -34,10 +38,10 @@ func (*ClusterProfileController) FetchClusterProfiles(w http.ResponseWriter, r *
 	}
 }
 
-// CreateClusterProfile handle function creates a cluster profile give cluster details.
+// createProfile handle function creates a cluster profile give cluster details.
 // After validating the required fields in the request body, ID and CreatedTime fields
 // are populated and the cluster profile is created
-func (*ClusterProfileController) CreateClusterProfile(w http.ResponseWriter, r *http.Request) {
+func (*clusterController) createProfile(w http.ResponseWriter, r *http.Request) {
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)
 
@@ -66,9 +70,9 @@ func (*ClusterProfileController) CreateClusterProfile(w http.ResponseWriter, r *
 	err = repo.DB.CreateClusterProfile(&clusterCreateRequest)
 	if err != nil {
 		logging.Error.Printf(" [DB] Failed to create the cluster profile. Error-%v TraceID-%s", err, requestTraceID)
-		response.InternalServerError(w,"2004", err.Error())
+		response.InternalServerError(w, "2004", err.Error())
 	} else {
 		logging.Info.Printf(" [DB] Successfully created the cluster profile. TraceID-%s", requestTraceID)
-		response.Success(w,"2005", "Successfully created the cluster profile", nil)
+		response.Success(w, "2005", "Successfully created the cluster profile", nil)
 	}
 }

@@ -12,13 +12,16 @@ import (
 	"net/http"
 )
 
-// KVController is an empty struct. All key-value store related handle functions will be implemented
-// on this struct. This is used as a logical partition for all the handle functions
-// in controller package.
-type KVController struct {}
+// KVController is an empty struct
+// for all the key-value handle function to be implemented on
+type kvController struct {}
 
-// Put handle function stores a key value pair in the cluster
-func (*KVController) Put(w http.ResponseWriter, r *http.Request) {
+func NewKVController() *kvController {
+	return &kvController{}
+}
+
+// put handle function stores a key value pair in the cluster
+func (*kvController) put(w http.ResponseWriter, r *http.Request) {
 
 	// Getting the request tracing id from the request context
 	requestTraceID := r.Context().Value("trace_id").(string)

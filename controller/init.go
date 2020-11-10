@@ -12,44 +12,33 @@ func Initialize() *mux.Router {
 	// Creating a new router
 	router := mux.NewRouter()
 
-	// Declaring Controllers in order to access the handle functions
-	var authController AuthController
-	var clusterController ClusterProfileController
-	var statusController StatusController
-	var dashboardController DashboardController
-	var kvController KVController
+	// Initializing controller object
+	// Creating a sub router
+	// Adding no-auth or auth middleware based on the need
+	// Registering the handle functions
 
-	// Creating sub routers with different path prefix
+	authController := NewAuthController()
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
-	clusterProfileRouter := router.PathPrefix("/api/clusterProfile").Subrouter()
-	statusWithAuthRouter := router.PathPrefix("/api/status").Subrouter()
-	statusWithOutAuthRouter := router.PathPrefix("/api/status").Subrouter()
-	dashboardRouter := router.PathPrefix("/api/dashboard").Subrouter()
-	kvRouter := router.PathPrefix("/api/kv").Subrouter()
-
-
-	// Integrating the Auth and NoAuth middlewares
 	authRouter.Use(middleware.NoAuthLogging)
+	authRouter.HandleFunc("/checkAdminStatus", authController.checkAdminInitStatus).Methods("GET")
+	authRouter.HandleFunc("/saveAdminProfile", authController.saveAdminProfile).Methods("POST")
+	authRouter.HandleFunc("/login", authController.login)
+
+	clusterController := NewClusterController()
+	clusterProfileRouter := router.PathPrefix("/api/clusterProfile").Subrouter()
 	clusterProfileRouter.Use(middleware.AuthLogging)
-	statusWithAuthRouter.Use(middleware.AuthLogging)
-	statusWithOutAuthRouter.Use(middleware.NoAuthLogging)
+	clusterProfileRouter.HandleFunc("/fetchProfiles", clusterController.fetchProfiles).Methods("GET")
+	clusterProfileRouter.HandleFunc("/createProfile", clusterController.createProfile).Methods("POST")
+
+	dashboardController := NewDashboardController()
+	dashboardRouter := router.PathPrefix("/api/dashboard").Subrouter()
 	dashboardRouter.Use(middleware.AuthLogging)
+	dashboardRouter.HandleFunc("/view/{cluster_profile_id}", dashboardController.view).Methods("GET")
+
+	kvController := NewKVController()
+	kvRouter := router.PathPrefix("/api/kv").Subrouter()
 	kvRouter.Use(middleware.AuthLogging)
-
-	// Registering the handle function for different request paths
-	authRouter.HandleFunc("/checkAdminStatus", authController.CheckAdminInitStatus).Methods("GET")
-	authRouter.HandleFunc("/saveAdminProfile", authController.SaveAdminProfile).Methods("POST")
-	authRouter.HandleFunc("/login", authController.Login)
-
-	clusterProfileRouter.HandleFunc("/fetch", clusterController.FetchClusterProfiles).Methods("GET")
-	clusterProfileRouter.HandleFunc("/create", clusterController.CreateClusterProfile).Methods("POST")
-
-	statusWithAuthRouter.HandleFunc("/backup", statusController.TakeBackup).Methods("GET")
-	statusWithOutAuthRouter.HandleFunc("/useSnapshot", statusController.ReInitDBWithSnapshot).Methods("POST")
-
-	dashboardRouter.HandleFunc("/fetch/{cluster_profile_id}", dashboardController.Fetch).Methods("GET")
-
-	kvRouter.HandleFunc("/put/{cluster_profile_id}", kvController.Put).Methods("POST")
+	kvRouter.HandleFunc("/put/{cluster_profile_id}", kvController.put).Methods("POST")
 
 	return router
 }
