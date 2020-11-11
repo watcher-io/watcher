@@ -2,28 +2,30 @@ package repo
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/aka-achu/watcher/model"
-	"go.etcd.io/bbolt"
+	"github.com/dgraph-io/badger/v2"
 	"os"
 )
 
 // GetClusterProfiles, iterated the ${CLUSTER_PROFILE_BUCKET} bucket and
 // fetches all the cluster profiles present in the bucket.
-func (db *Database)GetClusterProfiles() ([]*model.ClusterProfile, error) {
+func (db *Database) GetClusterProfiles() ([]*model.ClusterProfile, error) {
 	var clusterProfiles []*model.ClusterProfile
-	return clusterProfiles, db.Conn.View(func(tx *bbolt.Tx) error {
-		// Creating cursor object of the bucket for iteration
-		c := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Cursor()
-		// Iterating the cursor object
-		for clusterID, cluster := c.First(); clusterID != nil; clusterID, cluster = c.Next() {
-			// If a valid key value pair is found then decode profile data into model.ClusterProfile object
-			var clusterInfo model.ClusterProfile
-			if err := json.Unmarshal(cluster, &clusterInfo); err != nil {
+	return clusterProfiles, db.Conn.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		prefix := []byte(os.Getenv("CLUSTER_PREFIX"))
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.Item()
+			var clusterInfo *model.ClusterProfile
+			if err := item.Value(func(v []byte) error {
+				return json.Unmarshal(v, clusterInfo)
+			}); err != nil {
 				return err
+			} else {
+				clusterProfiles = append(clusterProfiles, clusterInfo)
 			}
-			// Append the cluster profile info with the pre-declared array
-			clusterProfiles = append(clusterProfiles, &clusterInfo)
 		}
 		return nil
 	})
@@ -31,13 +33,16 @@ func (db *Database)GetClusterProfiles() ([]*model.ClusterProfile, error) {
 
 // CreateClusterProfile, creates a cluster profile inside ${CLUSTER_PROFILE_BUCKET} bucket, given
 // a validated *model.ClusterProfile object
-func (db *Database)CreateClusterProfile(cluster *model.ClusterProfile) error {
+func (db *Database) CreateClusterProfile(cluster *model.ClusterProfile) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
 	} else {
 		return db.Conn.Update(
-			func(tx *bbolt.Tx) error {
-				return tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Put([]byte(cluster.ID), byteData)
+			func(tx *badger.Txn) error {
+				return tx.Set(
+					[]byte(fmt.Sprintf("%s_%s", os.Getenv("CLUSTER_PREFIX"), cluster.ID)),
+					byteData,
+				)
 			},
 		)
 	}
@@ -45,19 +50,17 @@ func (db *Database)CreateClusterProfile(cluster *model.ClusterProfile) error {
 
 // GetClusterInfoByID, return a model.ClusterProfile object containing cluster details of having the requested
 // id as the ClusterID
-func (db *Database)GetClusterInfoByID(clusterID string) (*model.ClusterProfile, error) {
-	var cluster model.ClusterProfile
-	return &cluster,
+func (db *Database) GetClusterInfoByID(clusterID string) (*model.ClusterProfile, error) {
+	var cluster *model.ClusterProfile
+	return cluster,
 		db.Conn.View(
-			func(tx *bbolt.Tx) error {
-				byteData := tx.Bucket([]byte(os.Getenv("CLUSTER_PROFILE_BUCKET"))).Get([]byte(clusterID))
-				if len(byteData) == 0 {
-					return errors.New("requested cluster does not exist in the Database")
+			func(tx *badger.Txn) error {
+				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", os.Getenv("CLUSTER_PREFIX"), clusterID))); err != nil {
+					return err
 				} else {
-					return json.Unmarshal(
-						byteData,
-						&cluster,
-					)
+					return item.Value(func(v []byte) error {
+						return json.Unmarshal(v,cluster)
+					})
 				}
 			},
 		)

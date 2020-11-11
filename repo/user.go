@@ -2,25 +2,24 @@ package repo
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/aka-achu/watcher/model"
-	"go.etcd.io/bbolt"
+	"github.com/dgraph-io/badger/v2"
 	"os"
 )
 
-// GetUserDetails, retrieves the profile details of the admin.
-func (db *Database)GetUserDetails() (*model.User, error) {
-	var user model.User
-	return &user,
+// GetAdminDetails, retrieves the profile details of the admin.
+func (db *Database) GetAdminDetails() (*model.User, error) {
+	var user *model.User
+	return user,
 		db.Conn.View(
-			func(tx *bbolt.Tx) error {
-				byteData := tx.Bucket([]byte(os.Getenv("USER_PROFILE_BUCKET"))).Get([]byte("admin"))
-				if len(byteData) == 0 {
-					return nil
+			func(tx *badger.Txn) error {
+				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", os.Getenv("USER_PREFIX"), "admin"))); err != nil {
+					return err
 				} else {
-					return json.Unmarshal(
-						byteData,
-						&user,
-					)
+					return item.Value(func(v []byte) error {
+						return json.Unmarshal(v, user)
+					})
 				}
 			},
 		)
@@ -32,8 +31,11 @@ func (db *Database) SaveUserDetails(user *model.User) error {
 		return err
 	} else {
 		return db.Conn.Update(
-			func(tx *bbolt.Tx) error {
-				return tx.Bucket([]byte(os.Getenv("USER_PROFILE_BUCKET"))).Put([]byte("admin"), byteData)
+			func(tx *badger.Txn) error {
+				return tx.Set(
+					[]byte(fmt.Sprintf("%s_%s", os.Getenv("USER_PREFIX"), "admin")),
+					byteData,
+				)
 			},
 		)
 	}

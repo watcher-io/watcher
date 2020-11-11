@@ -2,13 +2,12 @@ package repo
 
 import (
 	"github.com/aka-achu/watcher/logging"
-	"go.etcd.io/bbolt"
-	"path/filepath"
-	"time"
+	"github.com/dgraph-io/badger/v2"
+	"os"
 )
 
 type Database struct {
-	Conn *bbolt.DB
+	Conn *badger.DB
 }
 
 // NewRepo, initialized a db object containing a Database connection
@@ -17,13 +16,11 @@ func NewDatabase() *Database {
 }
 
 // getConnection, establishes a Database connection
-func getConnection() *bbolt.DB {
-	if db, err := bbolt.Open(
-		filepath.Join("data", "watcher.db"),
-		0666,
-		&bbolt.Options{
-			Timeout: 1 * time.Second,
-		}); err != nil {
+func getConnection() *badger.DB {
+	if db, err := badger.Open(
+		badger.DefaultOptions("data").
+			WithEncryptionKey([]byte(os.Getenv("DB_ENCRYPTION_SECRET"))),
+	); err != nil {
 		logging.Error.Fatalf(" [DB] Failed to connect to the watcher.db. Error-%v", err)
 		return nil
 	} else {
