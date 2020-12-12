@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"github.com/aka-achu/watcher/controller"
 	"github.com/aka-achu/watcher/logging"
 	"github.com/gorilla/mux"
@@ -17,21 +16,7 @@ import (
 
 func Execute() {
 	router := controller.Initialize()
-	CorsOrigin := os.Getenv("CORS_ORIGIN")
-	if CorsOrigin != "" {
-		router.Use(cors.New(cors.Options{
-			//AllowedOrigins:   []string{CorsOrigin},
-			AllowOriginFunc: func(origin string) bool {
-				fmt.Println(origin)
-				return true
-			},
-			AllowCredentials: true,
-			Debug:            true,
-		},
-		).Handler)
-	} else {
-		router.Use(cors.AllowAll().Handler)
-	}
+	router.Use(cors.AllowAll().Handler)
 	server := getServer(os.Getenv("BUILD") == "Prod", router)
 
 	done := make(chan bool)
@@ -53,12 +38,12 @@ func Execute() {
 
 	if os.Getenv("BUILD") == "Prod" {
 		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
-			if err := server.ListenAndServeTLS(
-				filepath.Join("cert", os.Getenv("TLS_CERTIFICATE_FILE")),
-				filepath.Join("cert", os.Getenv("TLS_KEY_FILE")),
-			); err != nil && err != http.ErrServerClosed {
-				logging.Error.Fatal(err)
-			}
+		if err := server.ListenAndServeTLS(
+			filepath.Join("cert", os.Getenv("TLS_CERTIFICATE_FILE")),
+			filepath.Join("cert", os.Getenv("TLS_KEY_FILE")),
+		); err != nil && err != http.ErrServerClosed {
+			logging.Error.Fatal(err)
+		}
 	} else {
 		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
