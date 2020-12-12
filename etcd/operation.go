@@ -2,7 +2,6 @@ package etcd
 
 import (
 	"context"
-	"fmt"
 	"github.com/aka-achu/watcher/model"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -14,10 +13,8 @@ func FetchMember(
 	*model.Cluster,
 	error,
 ) {
-	fmt.Println("1")
 	var clusterState model.Cluster
 	memberListResponse, err := c.MemberList(ctx)
-	fmt.Println("2", memberListResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +45,14 @@ func FetchMember(
 	return &clusterState, err
 }
 
-func PutKV(ctx context.Context, c *clientv3.Client, putKVRequest *model.PutKVRequest) (*model.PutKVResponse, error) {
+func PutKV(
+	ctx context.Context,
+	c *clientv3.Client,
+	putKVRequest *model.PutKVRequest,
+) (
+	*model.PutKVResponse,
+	error,
+) {
 
 	putResponse, err := c.Put(ctx, putKVRequest.Key, putKVRequest.Value)
 	if err != nil {

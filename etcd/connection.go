@@ -1,7 +1,6 @@
 package etcd
 
 import (
-	"fmt"
 	"github.com/aka-achu/watcher/model"
 	"go.etcd.io/etcd/clientv3"
 	"time"
@@ -15,8 +14,4 @@ func connect(cfg *model.ClusterProfile) (*clientv3.Client, error) {
 		Username:    cfg.Username,
 		Password:    cfg.Password,
 	})
-}
-
-func C(cfg *model.ClusterProfile) {
-	fmt.Println(connect(cfg))
 }

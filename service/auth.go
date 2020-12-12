@@ -4,12 +4,10 @@ import (
 	"context"
 	"github.com/aka-achu/watcher/logging"
 	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/pkg_error"
 	"github.com/aka-achu/watcher/utility"
 )
 
-
-type authService struct {}
+type authService struct{}
 
 func NewAuthService() *authService {
 	return &authService{}
@@ -17,24 +15,25 @@ func NewAuthService() *authService {
 
 func (*authService) Login(
 	object *model.LoginRequest,
-	r model.UserRepo,
+	repo model.UserRepo,
 	ctx context.Context,
-) (*model.LoginResponse, error) {
+) (
+	*model.LoginResponse,
+	error,
+) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	user, err := r.Fetch(object.UserName, ctx)
+	user, err := repo.Fetch(object.UserName, ctx)
 	if err != nil {
-		logging.Error.Printf(" [DB] Failed to fetch user profile details. Error-%v TraceID-%s",
-			err, requestTraceID)
-		return nil, pkg_error.ErrFailedToFetchUser
+		logging.Error.Printf(" [DB] TraceID-%s Failed to fetch user profile details. Error-%v",
+			requestTraceID, err)
+		return nil, err
 	}
 	if user.Password == utility.Hash(object.Password) {
 		if token, err := utility.CreateToken(user.UserName); err != nil {
-			logging.Error.Printf(" [APP] Valid user credential but failed to generate access token. Error-%v TraceID-%s",
-				err, requestTraceID)
+			logging.Error.Printf(" [APP] TraceID-%s Failed to generate access token. Error-%v",
+				requestTraceID, err)
 			return nil, err
 		} else {
-			logging.Info.Printf(" [APP] Valid user credential. Successfully generated access token. TraceID-%s",
-				requestTraceID)
 			return &model.LoginResponse{
 				AccessToken: token,
 				UserName:    user.UserName,
@@ -43,7 +42,7 @@ func (*authService) Login(
 			}, nil
 		}
 	} else {
-		logging.Warn.Printf(" [APP] Invalid user credential. TraceID-%s", requestTraceID)
-		return nil, pkg_error.ErrInvalidCredential
+		logging.Warn.Printf(" [APP] TraceID-%s Invalid user credential.", requestTraceID)
+		return nil, err
 	}
 }

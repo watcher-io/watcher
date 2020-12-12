@@ -15,16 +15,9 @@ import (
 	"time"
 )
 
-// Execute starts the web server on the specified server address
-// in the ".env" file.
 func Execute() {
-	// Initializing the controller, registering the endpoints
 	router := controller.Initialize()
-
-	// Getting CORS_ORIGIN from env
 	CorsOrigin := os.Getenv("CORS_ORIGIN")
-
-	// Adding a middleware for handling cors
 	if CorsOrigin != "" {
 		router.Use(cors.New(cors.Options{
 			//AllowedOrigins:   []string{CorsOrigin},

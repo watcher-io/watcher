@@ -16,8 +16,8 @@ func NewAuthController() *authController {
 }
 
 func (*authController) Login(
-	userRepo model.UserRepo,
-	authService model.AuthService,
+	repo model.UserRepo,
+	svc model.AuthService,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestTraceID := r.Context().Value("trace_id").(string)
@@ -34,7 +34,7 @@ func (*authController) Login(
 			response.BadRequest(w, err.Error())
 			return
 		}
-		if resp, err := authService.Login(&loginRequest, userRepo, r.Context()); err != nil {
+		if resp, err := svc.Login(&loginRequest, repo, r.Context()); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
 			response.Success(w, "login successful", resp)

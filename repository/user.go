@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -18,7 +18,10 @@ func NewUserRepo(db *badger.DB) *userRepo {
 	}
 }
 
-func (r *userRepo) Create(user *model.User, ctx context.Context) error {
+func (r *userRepo) Create(
+	user *model.User,
+	ctx context.Context,
+) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
 	} else {
@@ -33,7 +36,13 @@ func (r *userRepo) Create(user *model.User, ctx context.Context) error {
 	}
 }
 
-func (r *userRepo) Fetch(userName string, ctx context.Context) (*model.User, error) {
+func (r *userRepo) Fetch(
+	userName string,
+	ctx context.Context,
+) (
+	*model.User,
+	error,
+) {
 	var user model.User
 	return &user,
 		r.conn.View(
@@ -49,4 +58,3 @@ func (r *userRepo) Fetch(userName string, ctx context.Context) (*model.User, err
 			},
 		)
 }
-

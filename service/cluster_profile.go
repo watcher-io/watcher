@@ -16,7 +16,7 @@ func NewClusterProfileService() *clusterProfileService {
 
 func (*clusterProfileService) Create(
 	profile *model.ClusterProfile,
-	r model.ClusterProfileRepo,
+	repo model.ClusterProfileRepo,
 	ctx context.Context,
 ) (
 	*model.ClusterProfile,
@@ -25,52 +25,46 @@ func (*clusterProfileService) Create(
 	profile.ID = uuid.New().String()
 	profile.CreatedAt = time.Now().Unix()
 	requestTraceID := ctx.Value("trace_id").(string)
-	if err := r.Create(profile, ctx); err != nil {
-		logging.Error.Printf(" [DB] Failed to create cluster profile. Error-%v TraceID-%s",
-			err, requestTraceID)
+	if err := repo.Create(profile, ctx); err != nil {
+		logging.Error.Printf(" [DB] TraceID-%s Failed to create cluster profile. Error-%v",
+			requestTraceID, err)
 		return nil, err
 	} else {
-		logging.Info.Printf(" [DB] Cluster profile created. TraceID-%s",
-			requestTraceID)
 		return profile, nil
 	}
 }
 
 func (*clusterProfileService) FetchByID(
 	profileID string,
-	r model.ClusterProfileRepo,
+	repo model.ClusterProfileRepo,
 	ctx context.Context,
 ) (
 	*model.ClusterProfile,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	if profile, err := r.FetchByID(profileID, ctx); err != nil {
-		logging.Error.Printf(" [DB] Failed to fetch the cluster profile. Error-%v TraceID-%s",
-			err, requestTraceID)
+	if profile, err := repo.FetchByID(profileID, ctx); err != nil {
+		logging.Error.Printf(" [DB] TraceID-%s Failed to fetch the cluster profile. Error-%v",
+			requestTraceID, err)
 		return nil, err
 	} else {
-		logging.Info.Printf(" [DB] Cluster profile retrieved. TraceID-%s",
-			requestTraceID)
 		return profile, nil
 	}
 }
 
 func (*clusterProfileService) FetchAll(
-	r model.ClusterProfileRepo,
+	repo model.ClusterProfileRepo,
 	ctx context.Context,
 ) (
 	[]*model.ClusterProfile,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	if profiles, err := r.FetchAll(ctx); err != nil {
-		logging.Error.Printf(" [DB] Failed to fetch cluster profiles. Error-%v TraceID-%s",
-			err, requestTraceID)
+	if profiles, err := repo.FetchAll(ctx); err != nil {
+		logging.Error.Printf(" [DB] TraceID-%s  Failed to fetch cluster profiles. Error-%v",
+			requestTraceID, err)
 		return nil, err
 	} else {
-		logging.Info.Printf(" [DB] Cluster profiles retrived. TraceID-%s",
-			requestTraceID)
 		return profiles, nil
 	}
 }

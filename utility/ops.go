@@ -12,28 +12,22 @@ import (
 	"time"
 )
 
-// Hash returns a sha1 hash of the request data
 func Hash(data string) string {
 	h := sha1.New()
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// CreateToken, generates a JWT token
 func CreateToken(user string) (string, error) {
-	// Adding data ot the jwt claims
-	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
-	atClaims["user_id"] = user
-
-	// The validity of the JWT token will be one day
-	atClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
-	// Generating JWT using the claims, secret token present in the env variables and the signing method
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims).SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	return jwt.NewWithClaims(
+		jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"authorized": true,
+			"user_id":    user,
+			"exp":        time.Now().Add(time.Hour * 24).Unix(),
+		}).SignedString([]byte(os.Getenv("ACCESS_SECRET")))
 }
 
-// VerifyToken, validates integrity of a JWT token
 func VerifyToken(bearToken string) error {
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) != 2 {

@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -19,7 +19,12 @@ func NewClusterProfileRepo(db *badger.DB) *clusterProfileRepo {
 	}
 }
 
-func (r *clusterProfileRepo) FetchAll(ctx context.Context) ([]*model.ClusterProfile, error) {
+func (r *clusterProfileRepo) FetchAll(
+	ctx context.Context,
+) (
+	[]*model.ClusterProfile,
+	error,
+) {
 	var clusterProfiles []*model.ClusterProfile
 	return clusterProfiles, r.conn.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
@@ -40,7 +45,10 @@ func (r *clusterProfileRepo) FetchAll(ctx context.Context) ([]*model.ClusterProf
 	})
 }
 
-func (r *clusterProfileRepo) Create(cluster *model.ClusterProfile, ctx context.Context) error {
+func (r *clusterProfileRepo) Create(
+	cluster *model.ClusterProfile,
+	ctx context.Context,
+) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
 	} else {
@@ -55,7 +63,13 @@ func (r *clusterProfileRepo) Create(cluster *model.ClusterProfile, ctx context.C
 	}
 }
 
-func (r *clusterProfileRepo) FetchByID(clusterID string, ctx context.Context) (*model.ClusterProfile, error) {
+func (r *clusterProfileRepo) FetchByID(
+	clusterID string,
+	ctx context.Context,
+) (
+	*model.ClusterProfile,
+	error,
+) {
 	var cluster model.ClusterProfile
 	return &cluster,
 		r.conn.View(

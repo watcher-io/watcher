@@ -14,18 +14,15 @@ func NewDashboardController() *dashboardController {
 }
 
 func (*dashboardController) View(
-	clusterProfileRepo model.ClusterProfileRepo,
-	dashboardService model.DashboardService,
+	repo model.ClusterProfileRepo,
+	svc model.DashboardService,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		clusterProfileID := mux.Vars(r)["cluster_profile_id"]
-		if clusterState, err := dashboardService.ViewCluster(clusterProfileID, clusterProfileRepo, r.Context()); err != nil {
+		if clusterState, err := svc.ViewCluster(clusterProfileID, repo, r.Context()); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
 			response.Success(w, "cluster state", clusterState)
 		}
-
 	}
-
 }

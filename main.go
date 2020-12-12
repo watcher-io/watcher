@@ -14,15 +14,5 @@ func init() {
 	etcd.Initialize()
 }
 func main() {
-	//etcd.C(&model.ClusterProfile{
-	//	ID:         "",
-	//	Name:       "",
-	//	Endpoints:  []string{"http://65.0.213.27:2379","http://65.0.213.27:3379","http://65.0.213.27:1379"},
-	//	Username:   "",
-	//	Password:   "",
-	//	ServerName: "",
-	//	CreatedAt:  0,
-	//})
-
 	cmd.Execute()
 }

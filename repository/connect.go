@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"github.com/aka-achu/watcher/logging"
@@ -22,7 +22,7 @@ func getConnection() *badger.DB {
 		logging.Error.Fatalf(" [DB] Failed to connect to the watcher.db. Error-%v", err)
 		return nil
 	} else {
-		logging.Info.Printf(" [DB] Successfully established connection with the db")
+		logging.Info.Printf(" [DB] Successfully established connection with the db.")
 		return db
 	}
 }

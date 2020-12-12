@@ -15,11 +15,11 @@ type ClusterProfile struct {
 	// Name is a user-given name for the cluster
 	// The Name will be unique in the application and is a required field
 	// for cluster profile creation
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 
 	// Endpoints is a list of URLs of nodes
 	// This is a required field for cluster profile creation
-	Endpoints []string `json:"endpoints"`
+	Endpoints []string `json:"endpoints" validate:"required,gt=0,dive,required"`
 
 	// Username is a user name for authentication.
 	Username string `json:"username"`
@@ -30,7 +30,7 @@ type ClusterProfile struct {
 	// ServerName ensures the cert matches the given host in case of discovery / virtual hosting
 	ServerName string `json:"server_name"`
 
-	CreatedAt int64  `json:"created_at"`
+	CreatedAt int64 `json:"created_at"`
 }
 
 type ClusterProfileRepo interface {
