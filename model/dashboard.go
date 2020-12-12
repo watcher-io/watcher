@@ -1,5 +1,10 @@
 package model
 
+import (
+	"context"
+	"net/http"
+)
+
 type Cluster struct {
 	Members []ClusterMember `json:"members"`
 	Leader  uint64          `json:"leader"`
@@ -22,4 +27,12 @@ type MemberStatus struct {
 	RaftIndex        uint64 `json:"raft_index"`
 	RaftTerm         uint64 `json:"raft_term"`
 	RaftAppliedIndex uint64 `json:"raft_applied_index"`
+}
+
+type DashboardService interface {
+	ViewCluster(string, ClusterProfileRepo, context.Context) (*Cluster, error)
+}
+
+type DashboardController interface {
+	View(ClusterProfileRepo, DashboardService) http.HandlerFunc
 }

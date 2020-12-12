@@ -1,42 +1,52 @@
 package repo
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/aka-achu/watcher/model"
 	"github.com/dgraph-io/badger/v2"
-	"os"
 )
 
-// GetAdminDetails, retrieves the profile details of the admin.
-func (db *Database) GetAdminDetails() (*model.User, error) {
-	var user *model.User
-	return user,
-		db.Conn.View(
-			func(tx *badger.Txn) error {
-				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", os.Getenv("USER_PREFIX"), "admin"))); err != nil {
-					return err
-				} else {
-					return item.Value(func(v []byte) error {
-						return json.Unmarshal(v, user)
-					})
-				}
-			},
-		)
+type userRepo struct {
+	conn *badger.DB
 }
 
-// SaveUserDetails, updates admin profile details in the Database
-func (db *Database) SaveUserDetails(user *model.User) error {
+func NewUserRepo(db *badger.DB) *userRepo {
+	return &userRepo{
+		conn: db,
+	}
+}
+
+func (r *userRepo) Create(user *model.User, ctx context.Context) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
 	} else {
-		return db.Conn.Update(
+		return r.conn.Update(
 			func(tx *badger.Txn) error {
 				return tx.Set(
-					[]byte(fmt.Sprintf("%s_%s", os.Getenv("USER_PREFIX"), "admin")),
+					[]byte(fmt.Sprintf("%s_%s", user.Prefix(), "admin")),
 					byteData,
 				)
 			},
 		)
 	}
 }
+
+func (r *userRepo) Fetch(userName string, ctx context.Context) (*model.User, error) {
+	var user model.User
+	return &user,
+		r.conn.View(
+			func(tx *badger.Txn) error {
+				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", user.Prefix(), userName)));
+					err != nil {
+					return err
+				} else {
+					return item.Value(func(v []byte) error {
+						return json.Unmarshal(v, &user)
+					})
+				}
+			},
+		)
+}
+

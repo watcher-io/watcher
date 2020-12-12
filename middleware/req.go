@@ -34,7 +34,7 @@ func AuthLogging(next http.Handler) http.Handler {
 		// Validating the Authorization token present in the request header
 		if err := utility.VerifyToken(r.Header.Get("Authorization")); err != nil {
 			logging.Warn.Printf(" [Req] Invalid access token. Error-%b TraceID-%s", err, traceID)
-			response.UnAuthorized(w,"000","Invalid access token")
+			response.UnAuthorized(w,"Invalid access token")
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))

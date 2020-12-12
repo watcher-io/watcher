@@ -1,9 +1,7 @@
 package etcd
 
-// Creating a cluster connection store for global access
-var ClusterConnection *ConnectionStore
+var Store *store
 
-// Initializing the cluster connection store with 15 minutes of ttl period
 func Initialize(){
-	ClusterConnection = New(15)
+	Store = NewStore(60)
 }

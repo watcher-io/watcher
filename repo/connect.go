@@ -10,16 +10,14 @@ type Database struct {
 	Conn *badger.DB
 }
 
-// NewRepo, initialized a db object containing a Database connection
 func NewDatabase() *Database {
 	return &Database{Conn: getConnection()}
 }
 
-// getConnection, establishes a Database connection
 func getConnection() *badger.DB {
 	if db, err := badger.Open(
 		badger.DefaultOptions("data").
-			WithEncryptionKey([]byte(os.Getenv("DB_ENCRYPTION_SECRET"))),
+			WithEncryptionKey([]byte(os.Getenv("DB_ENCRYPTION_SECRET"))).WithTruncate(true),
 	); err != nil {
 		logging.Error.Fatalf(" [DB] Failed to connect to the watcher.db. Error-%v", err)
 		return nil

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/aka-achu/watcher/controller"
 	"github.com/aka-achu/watcher/logging"
 	"github.com/gorilla/mux"
@@ -26,9 +27,13 @@ func Execute() {
 	// Adding a middleware for handling cors
 	if CorsOrigin != "" {
 		router.Use(cors.New(cors.Options{
-			AllowedOrigins:   []string{CorsOrigin},
+			//AllowedOrigins:   []string{CorsOrigin},
+			AllowOriginFunc: func(origin string) bool {
+				fmt.Println(origin)
+				return true
+			},
 			AllowCredentials: true,
-			Debug:            os.Getenv("BUILD") != "Prod",
+			Debug:            true,
 		},
 		).Handler)
 	} else {

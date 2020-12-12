@@ -1,60 +1,69 @@
 package etcd
 
 import (
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/repo"
+	"context"
+	"fmt"
+	"github.com/aka-achu/watcher/model"
 	"go.etcd.io/etcd/clientv3"
 	"sync"
 	"time"
 )
 
-type Cluster struct {
-	Connection *clientv3.Client
+type connection struct {
+	client     *clientv3.Client
 	lastAccess int64
 }
 
-type ConnectionStore struct {
-	m map[string]*Cluster
+type store struct {
+	m map[string]*connection
 	l sync.Mutex
 }
 
-func New(maxTTL int) (cs *ConnectionStore) {
-	cs = &ConnectionStore{m: make(map[string]*Cluster)}
+func NewStore(
+	maxTTL int,
+) *store {
+	s := &store{m: make(map[string]*connection)}
 	go func() {
 		for now := range time.Tick(time.Minute) {
-			cs.l.Lock()
-			for clusterID, cluster := range cs.m {
+			s.l.Lock()
+			for clusterID, cluster := range s.m {
 				if now.Unix()-cluster.lastAccess > int64(maxTTL) {
-					_ = cs.m[clusterID].Connection.Close()
-					delete(cs.m, clusterID)
+					_ = s.m[clusterID].client.Close()
+					delete(s.m, clusterID)
 				}
 			}
-			cs.l.Unlock()
+			s.l.Unlock()
 		}
 	}()
-	return
+	return s
 }
 
-func (cs *ConnectionStore) Get(db *repo.Database, clusterProfileID string) (*clientv3.Client, error) {
-	cs.l.Lock()
-	defer cs.l.Unlock()
-	if cluster, ok := cs.m[clusterProfileID]; ok {
+func (s *store) Get(
+	repo model.ClusterProfileRepo,
+	profileID string,
+	ctx context.Context,
+) (
+	*clientv3.Client,
+	error,
+) {
+	s.l.Lock()
+	defer s.l.Unlock()
+
+	if cluster, ok := s.m[profileID]; ok {
 		cluster.lastAccess = time.Now().Unix()
-		return cluster.Connection, nil
+		return cluster.client, nil
 	} else {
-		clusterInfo, err := db.GetClusterInfoByID(clusterProfileID)
+		clusterInfo, err := repo.FetchByID(profileID, ctx)
 		if err != nil {
-			logging.Error.Printf(" [APP] Failed to fetch the cluster details for connection. Error-%v ClusterID-%s", err, clusterProfileID)
+			fmt.Println("Failed to fetch the cluster profile", err)
 			return nil, err
 		}
 		conn, err := connect(clusterInfo)
 		if err != nil {
-			logging.Error.Printf(" [APP] Failed to connect to the requested cluster. Error-%v ClusterID-%s", err, clusterProfileID)
 			return nil, err
 		}
-		logging.Info.Printf(" [APP] Successfully connected to the requested cluster. ClusterID-%s", clusterProfileID)
-		cs.m[clusterProfileID] = &Cluster{
-			Connection: conn,
+		s.m[profileID] = &connection{
+			client:     conn,
 			lastAccess: time.Now().Unix(),
 		}
 		return conn, nil
