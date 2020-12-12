@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o watcher ./main.go
 
 FROM ubuntu:latest
 WORKDIR /root/
-COPY --from=builder /app/main  .
+COPY --from=builder /app/watcher  .
 COPY --from=builder /app/.env  .
 EXPOSE 8080
 CMD ["./watcher"]
