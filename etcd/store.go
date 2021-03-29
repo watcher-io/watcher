@@ -67,6 +67,9 @@ func (s *store) Get(
 
 	if cluster, ok := s.m[profileID]; ok {
 		cluster.lastAccess = time.Now().Unix()
+		if cluster.client == nil {
+			fmt.Println("oops it is nil")
+		}
 		return cluster.client, nil
 	} else {
 		clusterInfo, err := repo.FetchByID(ctx, profileID)

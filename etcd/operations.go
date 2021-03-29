@@ -54,13 +54,26 @@ func PutKV(
 	error,
 ) {
 
-	putResponse, err := c.Put(ctx, putKVRequest.Key, putKVRequest.Value)
+	putResponse, err := c.Put(ctx, putKVRequest.Key, putKVRequest.Value, clientv3.WithPrevKV())
 	if err != nil {
 		return nil, err
 	}
-	return &model.PutKVResponse{
-		Revision: putResponse.Header.GetRevision(),
-		MemberID: putResponse.Header.GetMemberId(),
-		RaftTerm: putResponse.Header.GetRaftTerm(),
-	}, nil
+	kvResponse := model.PutKVResponse{
+		MemberID:  putResponse.Header.GetMemberId(),
+		RaftTerm:  putResponse.Header.GetRaftTerm(),
+		ClusterID: putResponse.Header.GetClusterId(),
+		NewKV: true,
+	}
+	if putResponse.PrevKv != nil {
+		kvResponse.NewKV = false
+		kvResponse.PreviousKV = model.PreviousKV{
+			Key:            string(putResponse.PrevKv.Key),
+			CreateRevision: putResponse.PrevKv.CreateRevision,
+			ModRevision:    putResponse.PrevKv.ModRevision,
+			Version:        putResponse.PrevKv.Version,
+			Value:          string(putResponse.PrevKv.Value),
+			Lease:          putResponse.PrevKv.Lease,
+		}
+	}
+	return &kvResponse, nil
 }

@@ -10,12 +10,21 @@ type PutKVRequest struct {
 	Value string `json:"value"  validate:"required"`
 }
 
+type PreviousKV struct {
+	Key            string `json:"key"`
+	CreateRevision int64  `json:"create_revision"`
+	ModRevision    int64  `json:"mod_revision"`
+	Version        int64  `json:"version"`
+	Value          string `json:"value"`
+	Lease          int64  `json:"lease"`
+}
+
 type PutKVResponse struct {
-	Revision             int64  `json:"revision"`
-	MemberID             uint64 `json:"member_id"`
-	RaftTerm             uint64 `json:"raft_term"`
-	PreviousRevision     int64  `json:"previous_revision"`
-	PreviousRevisionVale string `json:"previous_revision_vale"`
+	ClusterID  uint64     `json:"cluster_id"`
+	MemberID   uint64     `json:"member_id"`
+	RaftTerm   uint64     `json:"raft_term"`
+	NewKV      bool       `json:"new_kv"`
+	PreviousKV PreviousKV `json:"previous_kv"`
 }
 
 type GetKVRequest struct {
