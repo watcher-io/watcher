@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aka-achu/watcher/model"
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v3"
+	"github.com/watcher-io/watcher/model"
 	"os"
 )
 
@@ -46,8 +46,8 @@ func (r *clusterProfileRepo) FetchAll(
 }
 
 func (r *clusterProfileRepo) Create(
-	cluster *model.ClusterProfile,
 	ctx context.Context,
+	cluster *model.ClusterProfile,
 ) error {
 	if byteData, err := json.Marshal(cluster); err != nil {
 		return err
@@ -64,8 +64,8 @@ func (r *clusterProfileRepo) Create(
 }
 
 func (r *clusterProfileRepo) FetchByID(
-	clusterID string,
 	ctx context.Context,
+	clusterID string,
 ) (
 	*model.ClusterProfile,
 	error,
@@ -81,7 +81,6 @@ func (r *clusterProfileRepo) FetchByID(
 					return err
 				} else {
 					return item.Value(func(v []byte) error {
-						fmt.Println("profile - ", string(v))
 						return json.Unmarshal(v, &cluster)
 					})
 				}

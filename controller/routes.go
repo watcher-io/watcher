@@ -1,105 +1,97 @@
 package controller
 
 import (
-	"github.com/aka-achu/watcher/middleware"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/repository"
-	"github.com/aka-achu/watcher/service"
 	"github.com/gorilla/mux"
+	"github.com/watcher-io/watcher/middleware"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/repository"
+	"github.com/watcher-io/watcher/service"
+	"github.com/watcher-io/watcher/store"
 )
 
 func Initialize() *mux.Router {
 
 	router := mux.NewRouter()
 	db := repository.NewDatabase()
+	objectStore := store.NewObjectStore()
 
 	registerUserRoute(
 		router,
-		NewUserController(),
-		repository.NewUserRepo(db.Conn),
-		service.NewUserService(),
+		NewUserController(
+			service.NewUserService(repository.NewUserRepo(db.Conn)),
+		),
 	)
 	registerAuthRoute(
 		router,
-		NewAuthController(),
-		repository.NewUserRepo(db.Conn),
-		service.NewAuthService(),
+		NewAuthController(
+			service.NewAuthService(repository.NewUserRepo(db.Conn)),
+		),
 	)
 	registerClusterProfileRoute(
 		router,
-		NewClusterProfileController(),
-		repository.NewClusterProfileRepo(db.Conn),
-		service.NewClusterProfileService(),
+		NewClusterProfileController(
+			service.NewClusterProfileService(repository.NewClusterProfileRepo(db.Conn), objectStore),
+		),
 	)
 	registerDashboardRoute(
 		router,
-		NewDashboardController(),
-		repository.NewClusterProfileRepo(db.Conn),
-		service.NewDashboardService(),
+		NewDashboardController(
+			service.NewDashboardService(repository.NewClusterProfileRepo(db.Conn), objectStore),
+		),
 	)
 	registerKVRoute(
 		router,
-		NewKVController(),
-		repository.NewClusterProfileRepo(db.Conn),
-		service.NewKVService(),
+		NewKVController(
+			service.NewKVService(repository.NewClusterProfileRepo(db.Conn), objectStore),
+		),
 	)
-
 	return router
 }
 
 func registerUserRoute(
 	r *mux.Router,
 	controller model.UserController,
-	repo model.UserRepo,
-	svc model.UserService,
 ) {
 	var userRouter = r.PathPrefix("/api/v1/user").Subrouter()
 	userRouter.Use(middleware.NoAuthLogging)
-	userRouter.HandleFunc("/create", controller.Create(repo, svc)).Methods("POST")
-	userRouter.HandleFunc("/exists", controller.Exists(repo, svc)).Methods("GET")
+	userRouter.HandleFunc("/create", controller.Create()).Methods("POST")
+	userRouter.HandleFunc("/exists", controller.Exists()).Methods("GET")
 }
 
 func registerAuthRoute(
 	r *mux.Router,
 	controller model.AuthController,
-	repo model.UserRepo,
-	svc model.AuthService,
 ) {
 	var authRouter = r.PathPrefix("/api/v1/auth").Subrouter()
 	authRouter.Use(middleware.NoAuthLogging)
-	authRouter.HandleFunc("/login", controller.Login(repo, svc)).Methods("POST")
+	authRouter.HandleFunc("/login", controller.Login()).Methods("POST")
 }
 
 func registerClusterProfileRoute(
 	r *mux.Router,
 	controller model.ClusterProfileController,
-	repo model.ClusterProfileRepo,
-	svc model.ClusterProfileService,
 ) {
 	var clusterProfileRouter = r.PathPrefix("/api/v1/clusterProfile").Subrouter()
 	clusterProfileRouter.Use(middleware.NoAuthLogging)
-	clusterProfileRouter.HandleFunc("/create", controller.Create(repo, svc)).Methods("POST")
-	clusterProfileRouter.HandleFunc("/fetch", controller.Fetch(repo, svc)).Methods("GET")
+	clusterProfileRouter.HandleFunc("/create", controller.Create()).Methods("POST")
+	clusterProfileRouter.HandleFunc("/fetch", controller.Fetch()).Methods("GET")
+	clusterProfileRouter.HandleFunc("/uploadCertificate", controller.UploadCertificate()).Methods("POST")
 }
 
 func registerDashboardRoute(
 	r *mux.Router,
 	controller model.DashboardController,
-	repo model.ClusterProfileRepo,
-	svc model.DashboardService,
 ) {
 	var dashboardRouter = r.PathPrefix("/api/v1/dashboard").Subrouter()
 	dashboardRouter.Use(middleware.NoAuthLogging)
-	dashboardRouter.HandleFunc("/view/{cluster_profile_id}", controller.View(repo, svc)).Methods("GET")
+	dashboardRouter.HandleFunc("/view/{cluster_profile_id}", controller.View()).Methods("GET")
 }
 
 func registerKVRoute(
 	r *mux.Router,
 	controller model.KVController,
-	repo model.ClusterProfileRepo,
-	svc model.KVService,
 ) {
 	var kvRouter = r.PathPrefix("/api/v1/kv").Subrouter()
 	kvRouter.Use(middleware.NoAuthLogging)
-	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put(repo, svc)).Methods("POST")
+	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST")
 }

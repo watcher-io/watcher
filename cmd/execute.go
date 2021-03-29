@@ -3,14 +3,13 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
-	"github.com/aka-achu/watcher/controller"
-	"github.com/aka-achu/watcher/logging"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/watcher-io/watcher/controller"
+	"github.com/watcher-io/watcher/logging"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"time"
 )
 
@@ -36,19 +35,19 @@ func Execute() {
 		close(done)
 	}()
 
-	if os.Getenv("BUILD") == "Prod" {
-		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
-		if err := server.ListenAndServeTLS(
-			filepath.Join("cert", os.Getenv("TLS_CERTIFICATE_FILE")),
-			filepath.Join("cert", os.Getenv("TLS_KEY_FILE")),
-		); err != nil && err != http.ErrServerClosed {
-			logging.Error.Fatal(err)
-		}
-	} else {
-		logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logging.Error.Fatal(err)
-		}
+	//if os.Getenv("BUILD") == "Prod" {
+	//	logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
+	//	if err := server.ListenAndServeTLS(
+	//		filepath.Join("cert", os.Getenv("TLS_CERTIFICATE_FILE")),
+	//		filepath.Join("cert", os.Getenv("TLS_KEY_FILE")),
+	//	); err != nil && err != http.ErrServerClosed {
+	//		logging.Error.Fatal(err)
+	//	}
+	//} else {
+	//}
+	logging.Info.Printf(" [APP] Starting server @%s", os.Getenv("SERVER_ADDRESS"))
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logging.Error.Fatal(err)
 	}
 
 	<-done

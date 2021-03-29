@@ -18,9 +18,9 @@ type LoginResponse struct {
 }
 
 type AuthService interface {
-	Login(*LoginRequest, UserRepo, context.Context) (*LoginResponse, error)
+	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 }
 
 type AuthController interface {
-	Login(UserRepo, AuthService) http.HandlerFunc
+	Login() http.HandlerFunc
 }

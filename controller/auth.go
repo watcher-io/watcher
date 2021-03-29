@@ -2,23 +2,24 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/response"
-	"github.com/aka-achu/watcher/validator"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/response"
+	"github.com/watcher-io/watcher/validator"
 	"net/http"
 )
 
-type authController struct{}
-
-func NewAuthController() *authController {
-	return &authController{}
+type authController struct {
+	svc model.AuthService
 }
 
-func (*authController) Login(
-	repo model.UserRepo,
+func NewAuthController(
 	svc model.AuthService,
-) http.HandlerFunc {
+) *authController {
+	return &authController{svc}
+}
+
+func (c *authController) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestTraceID := r.Context().Value("trace_id").(string)
 		var loginRequest model.LoginRequest
@@ -34,7 +35,7 @@ func (*authController) Login(
 			response.BadRequest(w, err.Error())
 			return
 		}
-		if resp, err := svc.Login(&loginRequest, repo, r.Context()); err != nil {
+		if resp, err := c.svc.Login(r.Context(), &loginRequest); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
 			response.Success(w, "login successful", resp)

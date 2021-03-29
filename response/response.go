@@ -2,7 +2,7 @@ package response
 
 import (
 	"encoding/json"
-	"github.com/aka-achu/watcher/model"
+	"github.com/watcher-io/watcher/model"
 	"net/http"
 )
 
@@ -27,7 +27,7 @@ func Success(w http.ResponseWriter, msg string, data interface{}) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(model.Format{
 		ResponseMessage: msg,
-		Data: data,
+		Data:            data,
 	})
 }
 

@@ -2,36 +2,34 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/response"
-	"github.com/aka-achu/watcher/validator"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/response"
+	"github.com/watcher-io/watcher/validator"
 	"net/http"
 )
 
-type clusterProfileController struct{}
-
-func NewClusterProfileController() *clusterProfileController {
-	return &clusterProfileController{}
+type clusterProfileController struct {
+	svc model.ClusterProfileService
 }
 
-func (*clusterProfileController) Fetch(
-	repo model.ClusterProfileRepo,
+func NewClusterProfileController(
 	svc model.ClusterProfileService,
-) http.HandlerFunc {
+) *clusterProfileController {
+	return &clusterProfileController{svc}
+}
+
+func (c *clusterProfileController) Fetch() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if profiles, err := svc.FetchAll(repo, r.Context()); err != nil {
-			response.InternalServerError(w,err.Error())
+		if profiles, err := c.svc.FetchAll(r.Context()); err != nil {
+			response.InternalServerError(w, err.Error())
 		} else {
-			response.Success(w,"cluster profiles retrieved", profiles)
+			response.Success(w, "cluster profiles retrieved", profiles)
 		}
 	}
 }
 
-func (*clusterProfileController) Create(
-	repo model.ClusterProfileRepo,
-	svc model.ClusterProfileService,
-) http.HandlerFunc {
+func (c *clusterProfileController) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestTraceID := r.Context().Value("trace_id").(string)
 		var clusterCreateRequest model.ClusterProfile
@@ -47,10 +45,20 @@ func (*clusterProfileController) Create(
 			response.BadRequest(w, err.Error())
 			return
 		}
-		if profile, err := svc.Create(&clusterCreateRequest, repo, r.Context()); err != nil {
-			response.InternalServerError(w,err.Error())
+		if profile, err := c.svc.Create(r.Context(), &clusterCreateRequest); err != nil {
+			response.InternalServerError(w, err.Error())
 		} else {
-			response.Success(w,"cluster profile created", profile)
+			response.Success(w, "cluster profile created", profile)
+		}
+	}
+}
+
+func (c *clusterProfileController) UploadCertificate() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if certIDs, err := c.svc.UploadCertificate(r.Context(), r); err != nil {
+			response.InternalServerError(w, err.Error())
+		} else {
+			response.Success(w, "certificate ids", certIDs)
 		}
 	}
 }

@@ -2,27 +2,28 @@ package service
 
 import (
 	"context"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/utility"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/utility"
 )
 
-type authService struct{}
-
-func NewAuthService() *authService {
-	return &authService{}
+type authService struct {
+	repo model.UserRepo
 }
 
-func (*authService) Login(
-	object *model.LoginRequest,
-	repo model.UserRepo,
+func NewAuthService(repo model.UserRepo) *authService {
+	return &authService{repo}
+}
+
+func (s *authService) Login(
 	ctx context.Context,
+	object *model.LoginRequest,
 ) (
 	*model.LoginResponse,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	user, err := repo.Fetch(object.UserName, ctx)
+	user, err := s.repo.Fetch(ctx, object.UserName)
 	if err != nil {
 		logging.Error.Printf(" [DB] TraceID-%s Failed to fetch user profile details. Error-%v",
 			requestTraceID, err)

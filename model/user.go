@@ -15,19 +15,19 @@ type User struct {
 }
 
 type UserRepo interface {
-	Create(*User, context.Context) error
-	Fetch(string, context.Context) (*User, error)
+	Create(context.Context, *User) error
+	Fetch(context.Context, string) (*User, error)
 }
 
 type UserService interface {
-	Create(*User, UserRepo, context.Context) (*User, error)
-	Fetch(string, UserRepo, context.Context) (*User, error)
-	Exists(string, UserRepo, context.Context) (bool, error)
+	Create(context.Context, *User) (*User, error)
+	Fetch(context.Context, string) (*User, error)
+	Exists(context.Context, string) (bool, error)
 }
 
 type UserController interface {
-	Create(UserRepo, UserService) http.HandlerFunc
-	Exists(UserRepo, UserService) http.HandlerFunc
+	Create() http.HandlerFunc
+	Exists() http.HandlerFunc
 }
 
 func (*User) Prefix() string {

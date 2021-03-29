@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"context"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/response"
-	"github.com/aka-achu/watcher/utility"
 	"github.com/google/uuid"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/response"
+	"github.com/watcher-io/watcher/utility"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ func AuthLogging(next http.Handler) http.Handler {
 		logging.Info.Printf(" [REQ] TraceID-%s Addr-%s URI-%s", traceID, r.RemoteAddr, r.RequestURI)
 		if err := utility.VerifyToken(r.Header.Get("Authorization")); err != nil {
 			logging.Warn.Printf(" [REQ] TraceID-%s Invalid access token. Error-%v", traceID, err)
-			response.UnAuthorized(w,"invalid access token")
+			response.UnAuthorized(w, "invalid access token")
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))

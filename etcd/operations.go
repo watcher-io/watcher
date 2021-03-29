@@ -2,7 +2,7 @@ package etcd
 
 import (
 	"context"
-	"github.com/aka-achu/watcher/model"
+	"github.com/watcher-io/watcher/model"
 	"go.etcd.io/etcd/clientv3"
 )
 

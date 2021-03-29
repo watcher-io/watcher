@@ -30,9 +30,9 @@ type MemberStatus struct {
 }
 
 type DashboardService interface {
-	ViewCluster(string, ClusterProfileRepo, context.Context) (*Cluster, error)
+	ViewCluster(context.Context, string) (*Cluster, error)
 }
 
 type DashboardController interface {
-	View(ClusterProfileRepo, DashboardService) http.HandlerFunc
+	View() http.HandlerFunc
 }

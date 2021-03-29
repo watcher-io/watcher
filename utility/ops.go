@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aka-achu/watcher/logging"
 	"github.com/dgrijalva/jwt-go"
 	"os"
 	"strings"
@@ -31,7 +30,6 @@ func CreateToken(user string) (string, error) {
 func VerifyToken(bearToken string) error {
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) != 2 {
-		logging.Error.Printf(" [APP] Invalid auth token in the request header")
 		return errors.New("invalid bearToken format")
 	}
 	if token, err := jwt.Parse(strArr[1], func(token *jwt.Token) (interface{}, error) {
@@ -40,11 +38,9 @@ func VerifyToken(bearToken string) error {
 		}
 		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	}); err != nil {
-		logging.Error.Printf(" [APP] Failed to parse the JWT token. %v", err)
 		return err
 	} else {
 		if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-			logging.Warn.Printf(" [APP] Unauthorized JWT token")
 			return err
 		} else {
 			return nil

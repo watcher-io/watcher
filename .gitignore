@@ -1,2 +1,4 @@
 .idea
 data
+minio.sh
+.env.dev

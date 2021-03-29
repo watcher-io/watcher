@@ -2,27 +2,32 @@ package service
 
 import (
 	"context"
-	"github.com/aka-achu/watcher/etcd"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
+	"github.com/watcher-io/watcher/etcd"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
 )
 
-type dashboardService struct{}
-
-func NewDashboardService() *dashboardService {
-	return &dashboardService{}
+type dashboardService struct {
+	repo  model.ClusterProfileRepo
+	store model.ObjectStore
 }
 
-func (*dashboardService) ViewCluster(
-	profileID string,
+func NewDashboardService(
 	repo model.ClusterProfileRepo,
+	store model.ObjectStore,
+) *dashboardService {
+	return &dashboardService{repo, store}
+}
+
+func (s *dashboardService) ViewCluster(
 	ctx context.Context,
+	profileID string,
 ) (
 	*model.Cluster,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	conn, err := etcd.Store.Get(repo, profileID, ctx)
+	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
 	if err != nil {
 		logging.Error.Printf(" [APP] TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
 			requestTraceID, err, profileID)

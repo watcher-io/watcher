@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aka-achu/watcher/model"
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v3"
+	"github.com/watcher-io/watcher/model"
 )
 
 type userRepo struct {
@@ -19,8 +19,8 @@ func NewUserRepo(db *badger.DB) *userRepo {
 }
 
 func (r *userRepo) Create(
-	user *model.User,
 	ctx context.Context,
+	user *model.User,
 ) error {
 	if byteData, err := json.Marshal(user); err != nil {
 		return err
@@ -37,8 +37,8 @@ func (r *userRepo) Create(
 }
 
 func (r *userRepo) Fetch(
-	userName string,
 	ctx context.Context,
+	userName string,
 ) (
 	*model.User,
 	error,
@@ -47,8 +47,7 @@ func (r *userRepo) Fetch(
 	return &user,
 		r.conn.View(
 			func(tx *badger.Txn) error {
-				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", user.Prefix(), userName)));
-					err != nil {
+				if item, err := tx.Get([]byte(fmt.Sprintf("%s_%s", user.Prefix(), userName))); err != nil {
 					return err
 				} else {
 					return item.Value(func(v []byte) error {

@@ -2,23 +2,24 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/response"
-	"github.com/aka-achu/watcher/validator"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/response"
+	"github.com/watcher-io/watcher/validator"
 	"net/http"
 )
 
-type userController struct{}
-
-func NewUserController() *userController {
-	return &userController{}
+type userController struct {
+	svc model.UserService
 }
 
-func (*userController) Create(
-	repo model.UserRepo,
+func NewUserController(
 	svc model.UserService,
-) http.HandlerFunc {
+) *userController {
+	return &userController{svc}
+}
+
+func (c *userController) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestTraceID := r.Context().Value("trace_id").(string)
 		var createRequest model.User
@@ -34,7 +35,7 @@ func (*userController) Create(
 			response.BadRequest(w, err.Error())
 			return
 		}
-		if user, err := svc.Create(&createRequest, repo, r.Context()); err != nil {
+		if user, err := c.svc.Create(r.Context(), &createRequest); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
 			response.Success(w, "user created successfully", user)
@@ -42,12 +43,9 @@ func (*userController) Create(
 	}
 }
 
-func (*userController) Exists(
-	repo model.UserRepo,
-	svc model.UserService,
-) http.HandlerFunc {
+func (c *userController) Exists() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if status, err := svc.Exists("admin", repo, r.Context()); err != nil {
+		if status, err := c.svc.Exists(r.Context(), "admin"); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
 			response.Success(w, "admin existence status", status)

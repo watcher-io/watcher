@@ -33,9 +33,9 @@ type GetKVRequest struct {
 }
 
 type KVService interface {
-	Put(string, *PutKVRequest, ClusterProfileRepo, context.Context) (*PutKVResponse, error)
+	Put(context.Context, string, *PutKVRequest) (*PutKVResponse, error)
 }
 
 type KVController interface {
-	Put(ClusterProfileRepo, KVService) http.HandlerFunc
+	Put() http.HandlerFunc
 }

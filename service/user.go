@@ -3,32 +3,35 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
-	"github.com/aka-achu/watcher/utility"
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/google/uuid"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
+	"github.com/watcher-io/watcher/utility"
 )
 
-type userService struct{}
-
-func NewUserService() *userService {
-	return &userService{}
+type userService struct {
+	repo model.UserRepo
 }
-func (svc *userService) Create(
-	user *model.User,
+
+func NewUserService(
 	repo model.UserRepo,
+) *userService {
+	return &userService{repo}
+}
+func (s *userService) Create(
 	ctx context.Context,
+	user *model.User,
 ) (
 	*model.User,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
 	user.UserName = "admin"
-	if status, _ := svc.Exists(user.UserName, repo, ctx); !status {
+	if status, _ := s.Exists(ctx, user.UserName); !status {
 		user.ID = uuid.New().String()
 		user.Password = utility.Hash(user.Password)
-		if err := repo.Create(user, ctx); err != nil {
+		if err := s.repo.Create(ctx, user); err != nil {
 			logging.Error.Printf(" [DB] TraceID-%s Failed to create the user Error-%v",
 				requestTraceID, err)
 			return nil, err
@@ -43,16 +46,15 @@ func (svc *userService) Create(
 	}
 }
 
-func (*userService) Fetch(
-	userName string,
-	repo model.UserRepo,
+func (s *userService) Fetch(
 	ctx context.Context,
+	userName string,
 ) (
 	*model.User,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	if user, err := repo.Fetch(userName, ctx); err != nil {
+	if user, err := s.repo.Fetch(ctx, userName); err != nil {
 		logging.Error.Printf(" [DB] TraceID-%s Failed to fetch user profile details. Error-%v",
 			requestTraceID, err)
 		return nil, err
@@ -62,20 +64,19 @@ func (*userService) Fetch(
 	}
 }
 
-func (*userService) Exists(
-	userName string,
-	repo model.UserRepo,
+func (s *userService) Exists(
 	ctx context.Context,
+	userName string,
 ) (
 	bool,
 	error,
 ) {
-	_, err := repo.Fetch(userName, ctx)
+	_, err := s.repo.Fetch(ctx, userName)
 	if errors.Is(err, badger.ErrKeyNotFound) {
 		return false, nil
-	} else if err != nil {
-		return false, err
-	} else {
+	} else if err == nil {
 		return true, nil
+	} else {
+		return false, err
 	}
 }

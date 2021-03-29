@@ -30,24 +30,30 @@ type ClusterProfile struct {
 	// ServerName ensures the cert matches the given host in case of discovery / virtual hosting
 	ServerName string `json:"server_name"`
 
-	CreatedAt int64 `json:"created_at"`
+	CreatedAt int64  `json:"created_at"`
+	TLS       bool   `json:"tls"`
+	CAFile    string `json:"ca_file"`
+	CertFile  string `json:"cert_file"`
+	KeyFile   string `json:"key_file"`
 }
 
 type ClusterProfileRepo interface {
-	Create(*ClusterProfile, context.Context) error
-	FetchByID(string, context.Context) (*ClusterProfile, error)
+	Create(context.Context, *ClusterProfile) error
+	FetchByID(context.Context, string) (*ClusterProfile, error)
 	FetchAll(context.Context) ([]*ClusterProfile, error)
 }
 
 type ClusterProfileService interface {
-	Create(*ClusterProfile, ClusterProfileRepo, context.Context) (*ClusterProfile, error)
-	FetchByID(string, ClusterProfileRepo, context.Context) (*ClusterProfile, error)
-	FetchAll(ClusterProfileRepo, context.Context) ([]*ClusterProfile, error)
+	Create(context.Context, *ClusterProfile) (*ClusterProfile, error)
+	FetchByID(context.Context, string) (*ClusterProfile, error)
+	FetchAll(context.Context) ([]*ClusterProfile, error)
+	UploadCertificate(context.Context, *http.Request) (map[string]string, error)
 }
 
 type ClusterProfileController interface {
-	Create(ClusterProfileRepo, ClusterProfileService) http.HandlerFunc
-	Fetch(ClusterProfileRepo, ClusterProfileService) http.HandlerFunc
+	Create() http.HandlerFunc
+	Fetch() http.HandlerFunc
+	UploadCertificate() http.HandlerFunc
 }
 
 func (*ClusterProfile) Prefix() string {

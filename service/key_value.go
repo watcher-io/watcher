@@ -2,28 +2,33 @@ package service
 
 import (
 	"context"
-	"github.com/aka-achu/watcher/etcd"
-	"github.com/aka-achu/watcher/logging"
-	"github.com/aka-achu/watcher/model"
+	"github.com/watcher-io/watcher/etcd"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
 )
 
-type kvService struct{}
-
-func NewKVService() *kvService {
-	return &kvService{}
+type kvService struct {
+	repo  model.ClusterProfileRepo
+	store model.ObjectStore
 }
 
-func (*kvService) Put(
+func NewKVService(
+	repo model.ClusterProfileRepo,
+	store model.ObjectStore,
+) *kvService {
+	return &kvService{repo, store}
+}
+
+func (s *kvService) Put(
+	ctx context.Context,
 	profileID string,
 	kv *model.PutKVRequest,
-	r model.ClusterProfileRepo,
-	ctx context.Context,
 ) (
 	*model.PutKVResponse,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
-	conn, err := etcd.Store.Get(r, profileID, ctx)
+	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
 	if err != nil {
 		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
 			requestTraceID, err, profileID)

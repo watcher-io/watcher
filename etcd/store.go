@@ -3,8 +3,11 @@ package etcd
 import (
 	"context"
 	"fmt"
-	"github.com/aka-achu/watcher/model"
+	"github.com/watcher-io/watcher/logging"
+	"github.com/watcher-io/watcher/model"
 	"go.etcd.io/etcd/clientv3"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -20,6 +23,8 @@ type store struct {
 }
 
 func NewStore(
+	ctx context.Context,
+	repo model.ClusterProfileRepo,
 	maxTTL int,
 ) *store {
 	s := &store{m: make(map[string]*connection)}
@@ -29,6 +34,16 @@ func NewStore(
 			for clusterID, cluster := range s.m {
 				if now.Unix()-cluster.lastAccess > int64(maxTTL) {
 					_ = s.m[clusterID].client.Close()
+					//todo clear the certificate files associated with the expired connection
+					if profile, err := repo.FetchByID(ctx, clusterID); err != nil {
+						logging.Error.Fatalf(" [ETCD] Failed to fetch profile details while flushing the certificates. Error-%v",
+							err)
+					} else {
+						fmt.Println("Flushing the files")
+						_ = os.Remove(filepath.Join(os.TempDir(), profile.CertFile))
+						_ = os.Remove(filepath.Join(os.TempDir(), profile.CAFile))
+						_ = os.Remove(filepath.Join(os.TempDir(), profile.KeyFile))
+					}
 					delete(s.m, clusterID)
 				}
 			}
@@ -41,6 +56,7 @@ func NewStore(
 func (s *store) Get(
 	repo model.ClusterProfileRepo,
 	profileID string,
+	store model.ObjectStore,
 	ctx context.Context,
 ) (
 	*clientv3.Client,
@@ -53,12 +69,11 @@ func (s *store) Get(
 		cluster.lastAccess = time.Now().Unix()
 		return cluster.client, nil
 	} else {
-		clusterInfo, err := repo.FetchByID(profileID, ctx)
+		clusterInfo, err := repo.FetchByID(ctx, profileID)
 		if err != nil {
-			fmt.Println("Failed to fetch the cluster profile", err)
 			return nil, err
 		}
-		conn, err := connect(clusterInfo)
+		conn, err := connect(ctx, clusterInfo, store)
 		if err != nil {
 			return nil, err
 		}
