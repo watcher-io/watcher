@@ -21,7 +21,7 @@ func init() {
 			log.Fatalf(" [APP] Failed to load the dev env file. Err-%s", err.Error())
 		}
 	case "prod":
-		if err := gotenv.Load(".env.dev"); err != nil {
+		if err := gotenv.Load(".env.prod"); err != nil {
 			log.Fatalf(" [APP] Failed to load the production env file. Err-%s", err.Error())
 		}
 	default:

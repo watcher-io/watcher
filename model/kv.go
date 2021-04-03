@@ -12,8 +12,6 @@ type PutKVRequest struct {
 
 type PreviousKV struct {
 	Key            string `json:"key"`
-	CreateRevision int64  `json:"create_revision"`
-	ModRevision    int64  `json:"mod_revision"`
 	Version        int64  `json:"version"`
 	Value          string `json:"value"`
 	Lease          int64  `json:"lease"`

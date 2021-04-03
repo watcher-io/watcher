@@ -68,8 +68,6 @@ func PutKV(
 		kvResponse.NewKV = false
 		kvResponse.PreviousKV = model.PreviousKV{
 			Key:            string(putResponse.PrevKv.Key),
-			CreateRevision: putResponse.PrevKv.CreateRevision,
-			ModRevision:    putResponse.PrevKv.ModRevision,
 			Version:        putResponse.PrevKv.Version,
 			Value:          string(putResponse.PrevKv.Value),
 			Lease:          putResponse.PrevKv.Lease,
