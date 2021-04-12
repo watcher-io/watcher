@@ -6,7 +6,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o watcher ./main.go
 
-FROM scratch
+FROM alpine:latest
 WORKDIR /app/
 COPY --from=builder /app/watcher  .
 COPY --from=builder /app/.env.prod  .
