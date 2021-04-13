@@ -45,7 +45,7 @@ func FetchMember(
 	return &clusterState, err
 }
 
-func PutKV(
+func  PutKV(
 	ctx context.Context,
 	c *clientv3.Client,
 	putKVRequest *model.PutKVRequest,
@@ -66,7 +66,7 @@ func PutKV(
 	}
 	if putResponse.PrevKv != nil {
 		kvResponse.NewKV = false
-		kvResponse.PreviousKV = model.PreviousKV{
+		kvResponse.PreviousKV = model.KV{
 			Key:            string(putResponse.PrevKv.Key),
 			Version:        putResponse.PrevKv.Version,
 			Value:          string(putResponse.PrevKv.Value),
@@ -75,3 +75,58 @@ func PutKV(
 	}
 	return &kvResponse, nil
 }
+
+func  GetKV(
+	ctx context.Context,
+	c *clientv3.Client,
+	getKVRequest *model.GetKVRequest,
+) (
+	*model.GetKVResponse,
+	error,
+) {
+	var ops []clientv3.OpOption
+
+	if getKVRequest.FromKey {
+		ops = append(ops, clientv3.WithFromKey())
+	}
+	if getKVRequest.Limit !=0 {
+		ops = append(ops, clientv3.WithLimit(getKVRequest.Limit))
+	}
+	if getKVRequest.KeysOnly {
+		ops = append(ops, clientv3.WithKeysOnly())
+	}
+	if getKVRequest.Prefix {
+		ops = append(ops, clientv3.WithPrefix())
+	}
+	if getKVRequest.Revision != 0 {
+		ops = append(ops, clientv3.WithRev(getKVRequest.Revision))
+	}
+	if getKVRequest.Range != "" {
+		ops = append(ops, clientv3.WithRange(getKVRequest.Range))
+	}
+
+	getResponse, err := c.Get(ctx, getKVRequest.Key, ops...)
+	if err != nil {
+		return nil, err
+	}
+	var getKVResponse = model.GetKVResponse{
+		ClusterId: getResponse.Header.GetClusterId(),
+		MemberId:  getResponse.Header.GetMemberId(),
+		Revision:  getResponse.Header.GetRevision(),
+		RaftTerm:  getResponse.Header.GetRaftTerm(),
+		More:      getResponse.More,
+		Count:     getResponse.Count,
+	}
+	for _, kv:= range getResponse.Kvs {
+		getKVResponse.KeyValues = append(getKVResponse.KeyValues, model.KV{
+			Key:            string(kv.Key),
+			Value:          string(kv.Value),
+			Version:        kv.Version,
+			CreateRevision: kv.CreateRevision,
+			ModRevision:    kv.ModRevision,
+			Lease:          kv.Lease,
+		})
+	}
+	return &getKVResponse, nil
+}
+

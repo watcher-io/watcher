@@ -94,4 +94,5 @@ func registerKVRoute(
 	var kvRouter = r.PathPrefix("/api/v1/kv").Subrouter()
 	kvRouter.Use(middleware.NoAuthLogging)
 	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST")
+	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST")
 }

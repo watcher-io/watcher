@@ -44,3 +44,28 @@ func (c *kvController) Put() http.HandlerFunc {
 		}
 	}
 }
+
+func (c *kvController) Get() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestTraceID := r.Context().Value("trace_id").(string)
+		clusterProfileID := mux.Vars(r)["cluster_profile_id"]
+		var getKVRequest model.GetKVRequest
+		if err := json.NewDecoder(r.Body).Decode(&getKVRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to decode the request body. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if err := validator.Validate.Struct(getKVRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to validate request body for required fields. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if getResponse, err := c.svc.Get(r.Context(), clusterProfileID, &getKVRequest); err != nil {
+			response.InternalServerError(w, err.Error())
+		} else {
+			response.Success(w, "key-value stored successfully", getResponse)
+		}
+	}
+}
