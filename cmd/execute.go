@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/watcher-io/watcher/controller"
 	"github.com/watcher-io/watcher/logging"
-	"github.com/watcher-io/watcher/middleware"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,8 +15,7 @@ import (
 
 func Execute() {
 	router := controller.Initialize()
-	//router.Use(cors.AllowAll().Handler)
-	router.Use(middleware.CORS)
+	router.Use(cors.AllowAll().Handler)
 	server := getServer(os.Getenv("BUILD") == "Prod", router)
 
 	done := make(chan bool)

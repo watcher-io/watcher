@@ -54,8 +54,8 @@ func registerUserRoute(
 ) {
 	var userRouter = r.PathPrefix("/api/v1/user").Subrouter()
 	userRouter.Use(middleware.NoAuthLogging)
-	userRouter.HandleFunc("/create", controller.Create()).Methods("POST")
-	userRouter.HandleFunc("/exists", controller.Exists()).Methods("GET")
+	userRouter.HandleFunc("/create", controller.Create()).Methods("POST","OPTIONS")
+	userRouter.HandleFunc("/exists", controller.Exists()).Methods("GET","OPTIONS")
 }
 
 func registerAuthRoute(
@@ -64,7 +64,7 @@ func registerAuthRoute(
 ) {
 	var authRouter = r.PathPrefix("/api/v1/auth").Subrouter()
 	authRouter.Use(middleware.NoAuthLogging)
-	authRouter.HandleFunc("/login", controller.Login()).Methods("POST")
+	authRouter.HandleFunc("/login", controller.Login()).Methods("POST","OPTIONS")
 }
 
 func registerClusterProfileRoute(
@@ -73,9 +73,9 @@ func registerClusterProfileRoute(
 ) {
 	var clusterProfileRouter = r.PathPrefix("/api/v1/clusterProfile").Subrouter()
 	clusterProfileRouter.Use(middleware.NoAuthLogging)
-	clusterProfileRouter.HandleFunc("/create", controller.Create()).Methods("POST")
-	clusterProfileRouter.HandleFunc("/fetch", controller.Fetch()).Methods("GET")
-	clusterProfileRouter.HandleFunc("/uploadCertificate", controller.UploadCertificate()).Methods("POST")
+	clusterProfileRouter.HandleFunc("/create", controller.Create()).Methods("POST","OPTIONS")
+	clusterProfileRouter.HandleFunc("/fetch", controller.Fetch()).Methods("GET","OPTIONS")
+	clusterProfileRouter.HandleFunc("/uploadCertificate", controller.UploadCertificate()).Methods("POST","OPTIONS")
 }
 
 func registerDashboardRoute(
@@ -84,7 +84,7 @@ func registerDashboardRoute(
 ) {
 	var dashboardRouter = r.PathPrefix("/api/v1/dashboard").Subrouter()
 	dashboardRouter.Use(middleware.NoAuthLogging)
-	dashboardRouter.HandleFunc("/view/{cluster_profile_id}", controller.View()).Methods("GET")
+	dashboardRouter.HandleFunc("/view/{cluster_profile_id}", controller.View()).Methods("GET","OPTIONS")
 }
 
 func registerKVRoute(
@@ -93,6 +93,6 @@ func registerKVRoute(
 ) {
 	var kvRouter = r.PathPrefix("/api/v1/kv").Subrouter()
 	kvRouter.Use(middleware.NoAuthLogging)
-	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST")
-	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST")
+	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST","OPTIONS")
+	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST","OPTIONS")
 }
