@@ -45,7 +45,7 @@ func FetchMember(
 	return &clusterState, err
 }
 
-func  PutKV(
+func PutKV(
 	ctx context.Context,
 	c *clientv3.Client,
 	putKVRequest *model.PutKVRequest,
@@ -61,22 +61,23 @@ func  PutKV(
 	kvResponse := model.PutKVResponse{
 		MemberID:  putResponse.Header.GetMemberId(),
 		RaftTerm:  putResponse.Header.GetRaftTerm(),
+		Revision:  putResponse.Header.GetRevision(),
 		ClusterID: putResponse.Header.GetClusterId(),
-		NewKV: true,
+		NewKV:     true,
 	}
 	if putResponse.PrevKv != nil {
 		kvResponse.NewKV = false
 		kvResponse.PreviousKV = model.KV{
-			Key:            string(putResponse.PrevKv.Key),
-			Version:        putResponse.PrevKv.Version,
-			Value:          string(putResponse.PrevKv.Value),
-			Lease:          putResponse.PrevKv.Lease,
+			Key:     string(putResponse.PrevKv.Key),
+			Version: putResponse.PrevKv.Version,
+			Value:   string(putResponse.PrevKv.Value),
+			Lease:   putResponse.PrevKv.Lease,
 		}
 	}
 	return &kvResponse, nil
 }
 
-func  GetKV(
+func GetKV(
 	ctx context.Context,
 	c *clientv3.Client,
 	getKVRequest *model.GetKVRequest,
@@ -89,7 +90,7 @@ func  GetKV(
 	if getKVRequest.FromKey {
 		ops = append(ops, clientv3.WithFromKey())
 	}
-	if getKVRequest.Limit !=0 {
+	if getKVRequest.Limit != 0 {
 		ops = append(ops, clientv3.WithLimit(getKVRequest.Limit))
 	}
 	if getKVRequest.KeysOnly {
@@ -104,20 +105,23 @@ func  GetKV(
 	if getKVRequest.Range != "" {
 		ops = append(ops, clientv3.WithRange(getKVRequest.Range))
 	}
+	if getKVRequest.CountOnly {
+		ops = append(ops, clientv3.WithCountOnly())
+	}
 
 	getResponse, err := c.Get(ctx, getKVRequest.Key, ops...)
 	if err != nil {
 		return nil, err
 	}
 	var getKVResponse = model.GetKVResponse{
-		ClusterId: getResponse.Header.GetClusterId(),
-		MemberId:  getResponse.Header.GetMemberId(),
+		ClusterID: getResponse.Header.GetClusterId(),
+		MemberID:  getResponse.Header.GetMemberId(),
 		Revision:  getResponse.Header.GetRevision(),
 		RaftTerm:  getResponse.Header.GetRaftTerm(),
 		More:      getResponse.More,
 		Count:     getResponse.Count,
 	}
-	for _, kv:= range getResponse.Kvs {
+	for _, kv := range getResponse.Kvs {
 		getKVResponse.KeyValues = append(getKVResponse.KeyValues, model.KV{
 			Key:            string(kv.Key),
 			Value:          string(kv.Value),
@@ -130,3 +134,36 @@ func  GetKV(
 	return &getKVResponse, nil
 }
 
+func DeleteKV(
+	ctx context.Context,
+	c *clientv3.Client,
+	deleteKVRequest *model.DeleteKVRequest,
+) (
+	*model.DeleteKVResponse,
+	error,
+) {
+	var ops []clientv3.OpOption
+
+	if deleteKVRequest.FromKey {
+		ops = append(ops, clientv3.WithFromKey())
+	}
+	if deleteKVRequest.Prefix {
+		ops = append(ops, clientv3.WithPrefix())
+	}
+	if deleteKVRequest.Range != "" {
+		ops = append(ops, clientv3.WithRange(deleteKVRequest.Range))
+	}
+
+	deleteResponse, err := c.Delete(ctx, deleteKVRequest.Key, ops...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DeleteKVResponse{
+		ClusterID: deleteResponse.Header.GetClusterId(),
+		MemberID:  deleteResponse.Header.GetMemberId(),
+		Revision:  deleteResponse.Header.GetRevision(),
+		RaftTerm:  deleteResponse.Header.GetRaftTerm(),
+		Count:     deleteResponse.Deleted ,
+	}, nil
+}

@@ -95,4 +95,5 @@ func registerKVRoute(
 	kvRouter.Use(middleware.NoAuthLogging)
 	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST","OPTIONS")
 	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST","OPTIONS")
+	kvRouter.HandleFunc("/delete/{cluster_profile_id}", controller.Delete()).Methods("POST","OPTIONS")
 }

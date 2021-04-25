@@ -72,3 +72,30 @@ func (s *kvService) Get(
 		return getResponse, nil
 	}
 }
+
+func (s *kvService) Delete(
+	ctx context.Context,
+	profileID string,
+	kv *model.DeleteKVRequest,
+) (
+	*model.DeleteKVResponse,
+	error,
+) {
+	requestTraceID := ctx.Value("trace_id").(string)
+	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
+	if err != nil {
+		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	}
+	deleteResponse, err := etcd.DeleteKV(ctx, conn, kv)
+	if err != nil {
+		logging.Error.Printf(" [APP] TraceID-%s Failed to delete the key-value from the cluster. Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	} else {
+		logging.Info.Printf(" [APP] TraceID-%s Successfully delete requested kv pair(s). ClusterProfileID-%s",
+			requestTraceID, profileID)
+		return deleteResponse, nil
+	}
+}

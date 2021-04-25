@@ -24,6 +24,7 @@ type KV struct {
 type PutKVResponse struct {
 	ClusterID  uint64 `json:"cluster_id"`
 	MemberID   uint64 `json:"member_id"`
+	Revision   int64  `json:"revision"`
 	RaftTerm   uint64 `json:"raft_term"`
 	NewKV      bool   `json:"new_kv"`
 	PreviousKV KV     `json:"previous_kv"`
@@ -42,27 +43,51 @@ type GetKVRequest struct {
 	// Get only the keys
 	KeysOnly bool `json:"keys_only"`
 	// Get will return the keys in the range [key, end)
-	Range     string `json:"range"`
+	Range string `json:"range"`
+	// Returns on the count of the keys
+	CountOnly bool `json:"count_only"`
 }
 
 type GetKVResponse struct {
-	ClusterId uint64 `json:"cluster_id"`
-	MemberId  uint64 `json:"member_id"`
+	ClusterID uint64 `json:"cluster_id"`
+	MemberID  uint64 `json:"member_id"`
 	Revision  int64  `json:"revision"`
 	RaftTerm  uint64 `json:"raft_term"`
 	// more indicates if there are more keys to return in the requested range.
 	More bool `json:"more"`
 	// count is set to the number of keys within the range when requested.
-	Count int64 `json:"count"`
-	KeyValues []KV   `json:"key_values"`
+	Count     int64 `json:"count"`
+	KeyValues []KV  `json:"key_values"`
+}
+
+type DeleteKVRequest struct {
+	Key string `json:"key"                validate:"required"`
+	// WithPrefix enables key delete with prefix
+	Prefix bool `json:"prefix"`
+	// Get keys that are greater than or equal to the given key using byte compare
+	FromKey bool `json:"from_key"`
+	// Delete will remove the keys in the range [key, end)
+	Range string `json:"range"`
+}
+
+type DeleteKVResponse struct {
+	ClusterID uint64 `json:"cluster_id"`
+	MemberID  uint64 `json:"member_id"`
+	Revision  int64  `json:"revision"`
+	RaftTerm  uint64 `json:"raft_term"`
+	// count is set to the number of keys within the range when requested.
+	Count     int64 `json:"count"`
+	//KeyValues []KV  `json:"key_values"`
 }
 
 type KVService interface {
 	Put(context.Context, string, *PutKVRequest) (*PutKVResponse, error)
 	Get(context.Context, string, *GetKVRequest) (*GetKVResponse, error)
+	Delete(context.Context, string, *DeleteKVRequest) (*DeleteKVResponse, error)
 }
 
 type KVController interface {
 	Put() http.HandlerFunc
 	Get() http.HandlerFunc
+	Delete() http.HandlerFunc
 }
