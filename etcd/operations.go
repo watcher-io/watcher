@@ -59,10 +59,12 @@ func PutKV(
 		return nil, err
 	}
 	kvResponse := model.PutKVResponse{
-		MemberID:  putResponse.Header.GetMemberId(),
-		RaftTerm:  putResponse.Header.GetRaftTerm(),
-		Revision:  putResponse.Header.GetRevision(),
-		ClusterID: putResponse.Header.GetClusterId(),
+		Header: model.Header{
+			MemberID:  putResponse.Header.GetMemberId(),
+			RaftTerm:  putResponse.Header.GetRaftTerm(),
+			Revision:  putResponse.Header.GetRevision(),
+			ClusterID: putResponse.Header.GetClusterId(),
+		},
 		NewKV:     true,
 	}
 	if putResponse.PrevKv != nil {
@@ -114,10 +116,12 @@ func GetKV(
 		return nil, err
 	}
 	var getKVResponse = model.GetKVResponse{
-		ClusterID: getResponse.Header.GetClusterId(),
-		MemberID:  getResponse.Header.GetMemberId(),
-		Revision:  getResponse.Header.GetRevision(),
-		RaftTerm:  getResponse.Header.GetRaftTerm(),
+		Header: model.Header{
+			ClusterID: getResponse.Header.GetClusterId(),
+			MemberID:  getResponse.Header.GetMemberId(),
+			Revision:  getResponse.Header.GetRevision(),
+			RaftTerm:  getResponse.Header.GetRaftTerm(),
+		},
 		More:      getResponse.More,
 		Count:     getResponse.Count,
 	}
@@ -160,10 +164,28 @@ func DeleteKV(
 	}
 
 	return &model.DeleteKVResponse{
-		ClusterID: deleteResponse.Header.GetClusterId(),
-		MemberID:  deleteResponse.Header.GetMemberId(),
-		Revision:  deleteResponse.Header.GetRevision(),
-		RaftTerm:  deleteResponse.Header.GetRaftTerm(),
+		Header: model.Header{
+			ClusterID: deleteResponse.Header.GetClusterId(),
+			MemberID:  deleteResponse.Header.GetMemberId(),
+			Revision:  deleteResponse.Header.GetRevision(),
+			RaftTerm:  deleteResponse.Header.GetRaftTerm(),
+		},
 		Count:     deleteResponse.Deleted ,
 	}, nil
+}
+
+func ListAlarm(
+	ctx context.Context,
+	c *clientv3.Client,
+) (
+	interface{},
+	error,
+) {
+	// todo
+	_, err := c.AlarmList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return nil,nil
+
 }

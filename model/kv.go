@@ -5,6 +5,13 @@ import (
 	"net/http"
 )
 
+type Header struct {
+	ClusterID uint64 `json:"cluster_id"`
+	MemberID  uint64 `json:"member_id"`
+	Revision  int64  `json:"revision"`
+	RaftTerm  uint64 `json:"raft_term"`
+}
+
 type PutKVRequest struct {
 	Key   string `json:"key"    validate:"required"`
 	Value string `json:"value"  validate:"required"`
@@ -22,10 +29,7 @@ type KV struct {
 }
 
 type PutKVResponse struct {
-	ClusterID  uint64 `json:"cluster_id"`
-	MemberID   uint64 `json:"member_id"`
-	Revision   int64  `json:"revision"`
-	RaftTerm   uint64 `json:"raft_term"`
+	Header     Header `json:"header"`
 	NewKV      bool   `json:"new_kv"`
 	PreviousKV KV     `json:"previous_kv"`
 }
@@ -49,10 +53,7 @@ type GetKVRequest struct {
 }
 
 type GetKVResponse struct {
-	ClusterID uint64 `json:"cluster_id"`
-	MemberID  uint64 `json:"member_id"`
-	Revision  int64  `json:"revision"`
-	RaftTerm  uint64 `json:"raft_term"`
+	Header     Header `json:"header"`
 	// more indicates if there are more keys to return in the requested range.
 	More bool `json:"more"`
 	// count is set to the number of keys within the range when requested.
@@ -71,12 +72,9 @@ type DeleteKVRequest struct {
 }
 
 type DeleteKVResponse struct {
-	ClusterID uint64 `json:"cluster_id"`
-	MemberID  uint64 `json:"member_id"`
-	Revision  int64  `json:"revision"`
-	RaftTerm  uint64 `json:"raft_term"`
+	Header     Header `json:"header"`
 	// count is set to the number of keys within the range when requested.
-	Count     int64 `json:"count"`
+	Count int64 `json:"count"`
 	//KeyValues []KV  `json:"key_values"`
 }
 
