@@ -11,6 +11,6 @@ func Initialize() {
 	Store = NewStore(
 		context.Background(),
 		repository.NewClusterProfileRepo(repository.NewDatabase().Conn),
-		60,
+		600,
 	)
 }

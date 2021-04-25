@@ -45,6 +45,12 @@ func Initialize() *mux.Router {
 			service.NewKVService(repository.NewClusterProfileRepo(db.Conn), objectStore),
 		),
 	)
+	registerMaintenanceRoute(
+		router,
+		NewMaintenanceController(
+			service.NewMaintenanceService(repository.NewClusterProfileRepo(db.Conn), objectStore),
+		),
+	)
 	return router
 }
 
@@ -96,4 +102,16 @@ func registerKVRoute(
 	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST","OPTIONS")
 	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST","OPTIONS")
 	kvRouter.HandleFunc("/delete/{cluster_profile_id}", controller.Delete()).Methods("POST","OPTIONS")
+}
+
+func registerMaintenanceRoute(
+	r *mux.Router,
+	controller model.MaintenanceController,
+) {
+	var maintenanceRouter = r.PathPrefix("/api/v1/maintenance").Subrouter()
+	maintenanceRouter.Use(middleware.NoAuthLogging)
+	maintenanceRouter.HandleFunc("/listAlarm/{cluster_profile_id}", controller.ListAlarm()).Methods("GET","OPTIONS")
+	maintenanceRouter.HandleFunc("/disarmAlarm/{cluster_profile_id}", controller.DisarmAlarm()).Methods("POST","OPTIONS")
+	maintenanceRouter.HandleFunc("/defragment/{cluster_profile_id}", controller.Defragment()).Methods("POST","OPTIONS")
+	maintenanceRouter.HandleFunc("/snapshot/{cluster_profile_id}", controller.Snapshot()).Methods("GET","OPTIONS")
 }

@@ -2,8 +2,15 @@ package etcd
 
 import (
 	"context"
+	"fmt"
 	"github.com/watcher-io/watcher/model"
 	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/etcdserver/etcdserverpb"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 func FetchMember(
@@ -65,7 +72,7 @@ func PutKV(
 			Revision:  putResponse.Header.GetRevision(),
 			ClusterID: putResponse.Header.GetClusterId(),
 		},
-		NewKV:     true,
+		NewKV: true,
 	}
 	if putResponse.PrevKv != nil {
 		kvResponse.NewKV = false
@@ -122,8 +129,8 @@ func GetKV(
 			Revision:  getResponse.Header.GetRevision(),
 			RaftTerm:  getResponse.Header.GetRaftTerm(),
 		},
-		More:      getResponse.More,
-		Count:     getResponse.Count,
+		More:  getResponse.More,
+		Count: getResponse.Count,
 	}
 	for _, kv := range getResponse.Kvs {
 		getKVResponse.KeyValues = append(getKVResponse.KeyValues, model.KV{
@@ -170,7 +177,7 @@ func DeleteKV(
 			Revision:  deleteResponse.Header.GetRevision(),
 			RaftTerm:  deleteResponse.Header.GetRaftTerm(),
 		},
-		Count:     deleteResponse.Deleted ,
+		Count: deleteResponse.Deleted,
 	}, nil
 }
 
@@ -178,14 +185,108 @@ func ListAlarm(
 	ctx context.Context,
 	c *clientv3.Client,
 ) (
-	interface{},
+	*model.ListAlarmResponse,
 	error,
 ) {
-	// todo
-	_, err := c.AlarmList(ctx)
+	alarmResponse, err := clientv3.NewMaintenance(c).AlarmList(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return nil,nil
+	var listAlarmResponse = &model.ListAlarmResponse{
+		Header: model.Header{
+			ClusterID: alarmResponse.Header.GetClusterId(),
+			MemberID:  alarmResponse.Header.GetMemberId(),
+			Revision:  alarmResponse.Header.GetRevision(),
+			RaftTerm:  alarmResponse.Header.GetRaftTerm(),
+		},
+		Alarms: make(map[uint64]int32),
+	}
+	for _, v := range alarmResponse.Alarms {
+		listAlarmResponse.Alarms[v.MemberID] = int32(v.Alarm)
+	}
+	return listAlarmResponse, nil
+}
 
+func DisarmAlarm(
+	ctx context.Context,
+	c *clientv3.Client,
+	disarmAlarmRequest *model.DisarmAlarmRequest,
+) (
+	*model.DisarmAlarmResponse,
+	error,
+) {
+	disarmResponse, err := clientv3.NewMaintenance(c).AlarmDisarm(ctx, &clientv3.AlarmMember{
+		MemberID: disarmAlarmRequest.MemberID,
+		Alarm:    etcdserverpb.AlarmType(disarmAlarmRequest.Alarm),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var disarmAlarmResponse = &model.DisarmAlarmResponse{
+		Header: model.Header{
+			ClusterID: disarmResponse.Header.GetClusterId(),
+			MemberID:  disarmResponse.Header.GetMemberId(),
+			Revision:  disarmResponse.Header.GetRevision(),
+			RaftTerm:  disarmResponse.Header.GetRaftTerm(),
+		},
+		Alarms: make(map[uint64]int32),
+	}
+	for _, v := range disarmResponse.Alarms {
+		disarmAlarmResponse.Alarms[v.MemberID] = int32(v.Alarm)
+	}
+	return disarmAlarmResponse, nil
+}
+
+func Defragment(
+	ctx context.Context,
+	c *clientv3.Client,
+	defragmentRequest *model.DefragmentRequest,
+) (
+	*model.DefragmentResponse,
+	error,
+) {
+	defragmentResponse, err := clientv3.NewMaintenance(c).Defragment(ctx, defragmentRequest.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+	return &model.DefragmentResponse{
+		Header: model.Header{
+			ClusterID: defragmentResponse.Header.GetClusterId(),
+			MemberID:  defragmentResponse.Header.GetMemberId(),
+			Revision:  defragmentResponse.Header.GetRevision(),
+			RaftTerm:  defragmentResponse.Header.GetRaftTerm(),
+		},
+	}, nil
+}
+
+func Snapshot(
+	ctx context.Context,
+	c *clientv3.Client,
+) (
+	string,
+	error,
+) {
+	snapshot, err := clientv3.NewMaintenance(c).Snapshot(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer snapshot.Close()
+	fileName := filepath.Join(os.TempDir(), fmt.Sprintf("%d", time.Now().Unix()))
+	var snapshotData []byte
+	p := make([]byte, 1024)
+	for {
+		n, err := snapshot.Read(p)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+		snapshotData = append(snapshotData, p[:n]...)
+	}
+	err = ioutil.WriteFile(fileName, snapshotData, 0666)
+	if err != nil {
+		return "", err
+	}
+	return fileName, nil
 }
