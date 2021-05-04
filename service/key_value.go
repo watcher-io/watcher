@@ -99,3 +99,30 @@ func (s *kvService) Delete(
 		return deleteResponse, nil
 	}
 }
+
+func (s *kvService) Compact(
+	ctx context.Context,
+	profileID string,
+	compact *model.CompactRequest,
+) (
+	*model.CompactResponse,
+	error,
+) {
+	requestTraceID := ctx.Value("trace_id").(string)
+	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
+	if err != nil {
+		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	}
+	compactResponse, err := etcd.Compact(ctx, conn, compact)
+	if err != nil {
+		logging.Error.Printf(" [APP] TraceID-%s Failed to compact the key space Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	} else {
+		logging.Info.Printf(" [APP] TraceID-%s Successfully compacted the key space. ClusterProfileID-%s",
+			requestTraceID, profileID)
+		return compactResponse, nil
+	}
+}

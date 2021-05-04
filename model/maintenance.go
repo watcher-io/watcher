@@ -21,20 +21,33 @@ type DefragmentRequest struct {
 	Endpoint string `json:"endpoint" validate:"required"`
 }
 
-type DefragmentResponse struct {
+type CompactRequest struct {
+	Revision int64 `json:"revision" validate:"required"`
+}
+
+type CompactResponse struct {
+	Header Header `json:"header"`
+}
+
+type MoveLeaderRequest struct {
+	TransfereeID    uint64   `json:"transferee_id"`
+	LeaderEndPoints []string `json:"leader_end_points"`
+}
+
+type MoveLeaderResponse struct {
 	Header Header `json:"header"`
 }
 
 type MaintenanceService interface {
-	ListAlarm(context.Context, string) (*ListAlarmResponse, error)
 	DisarmAlarm(context.Context, string, *DisarmAlarmRequest) (*DisarmAlarmResponse, error)
-	Defragment(context.Context, string, *DefragmentRequest) (*DefragmentResponse, error)
+	MoveLeader(context.Context, string, *MoveLeaderRequest) (*MoveLeaderResponse, error)
+	Defragment(context.Context, string, *DefragmentRequest) error
 	Snapshot(context.Context, string) (string, error)
 }
 
 type MaintenanceController interface {
-	ListAlarm() http.HandlerFunc
 	DisarmAlarm() http.HandlerFunc
 	Defragment() http.HandlerFunc
 	Snapshot() http.HandlerFunc
+	MoveLeader() http.HandlerFunc
 }

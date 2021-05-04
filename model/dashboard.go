@@ -6,27 +6,22 @@ import (
 )
 
 type Cluster struct {
-	Members []ClusterMember `json:"members"`
-	Leader  uint64          `json:"leader"`
-	ID      uint64          `json:"id"`
+	Members []Member `json:"members"`
+	Leader  uint64   `json:"leader"`
+	ID      uint64   `json:"id"`
 }
 
-type ClusterMember struct {
-	ID         uint64       `json:"id"`
-	Name       string       `json:"name"`
-	PeerURLS   []string     `json:"peer_urls"`
-	ClientURLS []string     `json:"client_urls"`
-	IsLearner  bool         `json:"is_learner"`
-	Status     MemberStatus `json:"status"`
-}
-
-type MemberStatus struct {
-	Version          string `json:"version"`
-	DbSize           int64  `json:"db_size"`
-	DbSizeInUse      int64  `json:"db_size_in_use"`
-	RaftIndex        uint64 `json:"raft_index"`
-	RaftTerm         uint64 `json:"raft_term"`
-	RaftAppliedIndex uint64 `json:"raft_applied_index"`
+type Member struct {
+	ID         uint64   `json:"id"`
+	Name       string   `json:"name"`
+	DbSize     int64    `json:"db_size"`
+	Version    string   `json:"version"`
+	Alarms     []int32  `json:"alarms"`
+	ClientURLS []string `json:"client_urls"`
+	PeerURLs   []string `json:"peer_urls"`
+	RaftIndex  uint64   `json:"raft_index"`
+	RaftTerm   uint64   `json:"raft_term"`
+	IsLearner  bool     `json:"is_learner"`
 }
 
 type DashboardService interface {

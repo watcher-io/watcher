@@ -94,3 +94,28 @@ func (c *kvController) Delete() http.HandlerFunc {
 		}
 	}
 }
+
+func (c *kvController) Compact() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestTraceID := r.Context().Value("trace_id").(string)
+		clusterProfileID := mux.Vars(r)["cluster_profile_id"]
+		var compactRequest model.CompactRequest
+		if err := json.NewDecoder(r.Body).Decode(&compactRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to decode the request body. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if err := validator.Validate.Struct(compactRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to validate request body for required fields. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if compactResponse, err := c.svc.Compact(r.Context(), clusterProfileID, &compactRequest); err != nil {
+			response.InternalServerError(w, err.Error())
+		} else {
+			response.Success(w, "compacted key space successfully", compactResponse)
+		}
+	}
+}

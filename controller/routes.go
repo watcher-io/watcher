@@ -102,6 +102,7 @@ func registerKVRoute(
 	kvRouter.HandleFunc("/put/{cluster_profile_id}", controller.Put()).Methods("POST","OPTIONS")
 	kvRouter.HandleFunc("/get/{cluster_profile_id}", controller.Get()).Methods("POST","OPTIONS")
 	kvRouter.HandleFunc("/delete/{cluster_profile_id}", controller.Delete()).Methods("POST","OPTIONS")
+	kvRouter.HandleFunc("/compact/{cluster_profile_id}", controller.Compact()).Methods("POST","OPTIONS")
 }
 
 func registerMaintenanceRoute(
@@ -110,8 +111,8 @@ func registerMaintenanceRoute(
 ) {
 	var maintenanceRouter = r.PathPrefix("/api/v1/maintenance").Subrouter()
 	maintenanceRouter.Use(middleware.NoAuthLogging)
-	maintenanceRouter.HandleFunc("/listAlarm/{cluster_profile_id}", controller.ListAlarm()).Methods("GET","OPTIONS")
 	maintenanceRouter.HandleFunc("/disarmAlarm/{cluster_profile_id}", controller.DisarmAlarm()).Methods("POST","OPTIONS")
 	maintenanceRouter.HandleFunc("/defragment/{cluster_profile_id}", controller.Defragment()).Methods("POST","OPTIONS")
 	maintenanceRouter.HandleFunc("/snapshot/{cluster_profile_id}", controller.Snapshot()).Methods("GET","OPTIONS")
+	maintenanceRouter.HandleFunc("/moveLeader/{cluster_profile_id}", controller.MoveLeader()).Methods("POST","OPTIONS")
 }

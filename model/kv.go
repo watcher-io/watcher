@@ -82,10 +82,12 @@ type KVService interface {
 	Put(context.Context, string, *PutKVRequest) (*PutKVResponse, error)
 	Get(context.Context, string, *GetKVRequest) (*GetKVResponse, error)
 	Delete(context.Context, string, *DeleteKVRequest) (*DeleteKVResponse, error)
+	Compact(context.Context, string, *CompactRequest) (*CompactResponse, error)
 }
 
 type KVController interface {
 	Put() http.HandlerFunc
 	Get() http.HandlerFunc
 	Delete() http.HandlerFunc
+	Compact() http.HandlerFunc
 }

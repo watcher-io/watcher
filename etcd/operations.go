@@ -3,9 +3,9 @@ package etcd
 import (
 	"context"
 	"fmt"
+	"github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/watcher-io/watcher/model"
 	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/etcdserver/etcdserverpb"
 	"io"
 	"io/ioutil"
 	"os"
@@ -25,7 +25,7 @@ func FetchMember(
 	if err != nil {
 		return nil, err
 	}
-
+	var view = make(map[uint64]model.Member)
 	clusterState.ID = memberListResponse.Header.ClusterId
 	for _, member := range memberListResponse.Members {
 		statusResponse, err := c.Status(ctx, member.ClientURLs[0])
@@ -33,21 +33,29 @@ func FetchMember(
 			return nil, err
 		}
 		clusterState.Leader = statusResponse.Leader
-		clusterState.Members = append(clusterState.Members, model.ClusterMember{
+		view[member.ID] = model.Member{
 			ID:         member.ID,
 			Name:       member.Name,
-			PeerURLS:   member.PeerURLs,
+			DbSize:     statusResponse.DbSize,
+			Version:    statusResponse.Version,
+			Alarms:     nil,
 			ClientURLS: member.ClientURLs,
-			IsLearner:  member.IsLearner,
-			Status: model.MemberStatus{
-				Version:          statusResponse.Version,
-				DbSize:           statusResponse.DbSize,
-				DbSizeInUse:      statusResponse.DbSizeInUse,
-				RaftIndex:        statusResponse.RaftIndex,
-				RaftTerm:         statusResponse.RaftTerm,
-				RaftAppliedIndex: statusResponse.RaftAppliedIndex,
-			},
-		})
+			PeerURLs:   member.PeerURLs,
+			RaftIndex:  statusResponse.RaftIndex,
+			RaftTerm:   statusResponse.RaftTerm,
+		}
+	}
+	alarmResponse, err := clientv3.NewMaintenance(c).AlarmList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range alarmResponse.Alarms {
+		member := view[v.MemberID]
+		member.Alarms = append(member.Alarms, int32(v.Alarm))
+		view[v.MemberID] = member
+	}
+	for _, v := range view {
+		clusterState.Members = append(clusterState.Members, v)
 	}
 	return &clusterState, err
 }
@@ -181,32 +189,6 @@ func DeleteKV(
 	}, nil
 }
 
-func ListAlarm(
-	ctx context.Context,
-	c *clientv3.Client,
-) (
-	*model.ListAlarmResponse,
-	error,
-) {
-	alarmResponse, err := clientv3.NewMaintenance(c).AlarmList(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var listAlarmResponse = &model.ListAlarmResponse{
-		Header: model.Header{
-			ClusterID: alarmResponse.Header.GetClusterId(),
-			MemberID:  alarmResponse.Header.GetMemberId(),
-			Revision:  alarmResponse.Header.GetRevision(),
-			RaftTerm:  alarmResponse.Header.GetRaftTerm(),
-		},
-		Alarms: make(map[uint64]int32),
-	}
-	for _, v := range alarmResponse.Alarms {
-		listAlarmResponse.Alarms[v.MemberID] = int32(v.Alarm)
-	}
-	return listAlarmResponse, nil
-}
-
 func DisarmAlarm(
 	ctx context.Context,
 	c *clientv3.Client,
@@ -242,19 +224,30 @@ func Defragment(
 	c *clientv3.Client,
 	defragmentRequest *model.DefragmentRequest,
 ) (
-	*model.DefragmentResponse,
 	error,
 ) {
-	defragmentResponse, err := clientv3.NewMaintenance(c).Defragment(ctx, defragmentRequest.Endpoint)
+	_, err := clientv3.NewMaintenance(c).Defragment(ctx, defragmentRequest.Endpoint)
+	return err
+}
+
+func Compact(
+	ctx context.Context,
+	c *clientv3.Client,
+	compactRequest *model.CompactRequest,
+) (
+	*model.CompactResponse,
+	error,
+) {
+	compactResponse, err := c.Compact(ctx, compactRequest.Revision)
 	if err != nil {
 		return nil, err
 	}
-	return &model.DefragmentResponse{
+	return &model.CompactResponse{
 		Header: model.Header{
-			ClusterID: defragmentResponse.Header.GetClusterId(),
-			MemberID:  defragmentResponse.Header.GetMemberId(),
-			Revision:  defragmentResponse.Header.GetRevision(),
-			RaftTerm:  defragmentResponse.Header.GetRaftTerm(),
+			ClusterID: compactResponse.Header.GetClusterId(),
+			MemberID:  compactResponse.Header.GetMemberId(),
+			Revision:  compactResponse.Header.GetRevision(),
+			RaftTerm:  compactResponse.Header.GetRaftTerm(),
 		},
 	}, nil
 }
@@ -289,4 +282,27 @@ func Snapshot(
 		return "", err
 	}
 	return fileName, nil
+}
+
+func MoveLeader(
+	ctx context.Context,
+	c *clientv3.Client,
+	moveLeaderRequest *model.MoveLeaderRequest,
+) (
+	*model.MoveLeaderResponse,
+	error,
+) {
+	c.SetEndpoints(moveLeaderRequest.LeaderEndPoints...)
+	moveLeaderResponse, err := clientv3.NewMaintenance(c).MoveLeader(ctx, moveLeaderRequest.TransfereeID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.MoveLeaderResponse{
+		Header: model.Header{
+			ClusterID: moveLeaderResponse.Header.GetClusterId(),
+			MemberID:  moveLeaderResponse.Header.GetMemberId(),
+			Revision:  moveLeaderResponse.Header.GetRevision(),
+			RaftTerm:  moveLeaderResponse.Header.GetRaftTerm(),
+		},
+	}, nil
 }

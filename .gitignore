@@ -2,3 +2,4 @@
 data
 minio.sh
 .env.dev
+go.mod.bak

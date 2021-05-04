@@ -20,17 +20,6 @@ func NewMaintenanceController(
 	return &maintenanceController{svc}
 }
 
-func (c *maintenanceController) ListAlarm() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		clusterProfileID := mux.Vars(r)["cluster_profile_id"]
-		if listAlarmResponse, err := c.svc.ListAlarm(r.Context(), clusterProfileID); err != nil {
-			response.InternalServerError(w, err.Error())
-		} else {
-			response.Success(w, "cluster alarms fetched successfully", listAlarmResponse)
-		}
-	}
-}
-
 func (c *maintenanceController) DisarmAlarm() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestTraceID := r.Context().Value("trace_id").(string)
@@ -73,10 +62,10 @@ func (c *maintenanceController) Defragment() http.HandlerFunc {
 			response.BadRequest(w, err.Error())
 			return
 		}
-		if defragmentResponse, err := c.svc.Defragment(r.Context(), clusterProfileID, &defragmentRequest); err != nil {
+		if err := c.svc.Defragment(r.Context(), clusterProfileID, &defragmentRequest); err != nil {
 			response.InternalServerError(w, err.Error())
 		} else {
-			response.Success(w, "de-fragmented the node successfully", defragmentResponse)
+			response.Success(w, "de-fragmented the node successfully", nil)
 		}
 	}
 }
@@ -88,6 +77,31 @@ func (c *maintenanceController) Snapshot() http.HandlerFunc {
 			response.InternalServerError(w, err.Error())
 		} else {
 			http.ServeFile(w, r, fileName)
+		}
+	}
+}
+
+func (c *maintenanceController) MoveLeader() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestTraceID := r.Context().Value("trace_id").(string)
+		clusterProfileID := mux.Vars(r)["cluster_profile_id"]
+		var moveLeaderRequest model.MoveLeaderRequest
+		if err := json.NewDecoder(r.Body).Decode(&moveLeaderRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to decode the request body. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if err := validator.Validate.Struct(moveLeaderRequest); err != nil {
+			logging.Error.Printf(" [APP] TraceID-%s Failed to validate request body for required fields. Error-%v",
+				requestTraceID, err)
+			response.BadRequest(w, err.Error())
+			return
+		}
+		if moveLeaderResponse, err := c.svc.MoveLeader(r.Context(), clusterProfileID, &moveLeaderRequest); err != nil {
+			response.InternalServerError(w, err.Error())
+		} else {
+			response.Success(w, "transferred the cluster leadership successfully", moveLeaderResponse)
 		}
 	}
 }

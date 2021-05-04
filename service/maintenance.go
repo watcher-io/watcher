@@ -19,32 +19,6 @@ func NewMaintenanceService(
 	return &maintenanceService{repo, store}
 }
 
-func (s *maintenanceService) ListAlarm(
-	ctx context.Context,
-	profileID string,
-) (
-	*model.ListAlarmResponse,
-	error,
-) {
-	requestTraceID := ctx.Value("trace_id").(string)
-	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
-	if err != nil {
-		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
-			requestTraceID, err, profileID)
-		return nil, err
-	}
-	listAlarmResponse, err := etcd.ListAlarm(ctx, conn)
-	if err != nil {
-		logging.Error.Printf(" [APP] TraceID-%s Failed to fetch alarms from the cluster. Error-%v ClusterProfileID-%s",
-			requestTraceID, err, profileID)
-		return nil, err
-	} else {
-		logging.Info.Printf(" [APP] TraceID-%s Successfully fetched alarms from the cluster. ClusterProfileID-%s",
-			requestTraceID, profileID)
-		return listAlarmResponse, nil
-	}
-}
-
 func (s *maintenanceService) DisarmAlarm(
 	ctx context.Context,
 	profileID string,
@@ -77,7 +51,6 @@ func (s *maintenanceService) Defragment(
 	profileID string,
 	defragment *model.DefragmentRequest,
 ) (
-	*model.DefragmentResponse,
 	error,
 ) {
 	requestTraceID := ctx.Value("trace_id").(string)
@@ -85,17 +58,17 @@ func (s *maintenanceService) Defragment(
 	if err != nil {
 		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
 			requestTraceID, err, profileID)
-		return nil, err
+		return err
 	}
-	defragmentResponse, err := etcd.Defragment(ctx, conn, defragment)
+	err = etcd.Defragment(ctx, conn, defragment)
 	if err != nil {
 		logging.Error.Printf(" [APP] TraceID-%s Failed to de-fragment the requested node. Error-%v ClusterProfileID-%s",
 			requestTraceID, err, profileID)
-		return nil, err
+		return err
 	} else {
 		logging.Info.Printf(" [APP] TraceID-%s Successfully de-fragmented the requested node. ClusterProfileID-%s",
 			requestTraceID, profileID)
-		return defragmentResponse, nil
+		return nil
 	}
 }
 
@@ -122,5 +95,32 @@ func (s *maintenanceService) Snapshot(
 		logging.Info.Printf(" [APP] TraceID-%s Successfully took a snapshot of the cluster. ClusterProfileID-%s",
 			requestTraceID, profileID)
 		return snapshotFile, nil
+	}
+}
+
+func (s *maintenanceService) MoveLeader(
+	ctx context.Context,
+	profileID string,
+	leader *model.MoveLeaderRequest,
+) (
+	*model.MoveLeaderResponse,
+	error,
+) {
+	requestTraceID := ctx.Value("trace_id").(string)
+	conn, err := etcd.Store.Get(s.repo, profileID, s.store, ctx)
+	if err != nil {
+		logging.Error.Printf(" [APP]  TraceID-%s Failed to establish connection with the cluster. Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	}
+	moveLeaderResponse, err := etcd.MoveLeader(ctx, conn, leader)
+	if err != nil {
+		logging.Error.Printf(" [APP] TraceID-%s Failed transfer the  cluster leader. Error-%v ClusterProfileID-%s",
+			requestTraceID, err, profileID)
+		return nil, err
+	} else {
+		logging.Info.Printf(" [APP] TraceID-%s Successfully transferred the cluster leadership. ClusterProfileID-%s",
+			requestTraceID, profileID)
+		return moveLeaderResponse, nil
 	}
 }
